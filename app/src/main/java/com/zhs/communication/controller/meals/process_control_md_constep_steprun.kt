@@ -141,7 +141,7 @@ open class process_control_md_constep_steprun : process_control_shoumaiji_md_con
 
          */
 //        var banzisdoindex = arrayListOf<Int>(0x62,0x63,0x65)
-        var resr = sdoreadindex(nodeidoftheserver = banzishoumaisdoindex[banzihao],
+        var resr = sdoReadIndex(nodeidoftheserver = banzishoumaisdoindex[banzihao],
             index = 0x2010, subindex = dianjihao+1)
         if (resr!=null){
             if (resr == 0) {
@@ -229,7 +229,7 @@ open class process_control_md_constep_steprun : process_control_shoumaiji_md_con
          */
 //        var banzisdoindex = arrayListOf<Int>(0x62,0x63,0x65)
         
-        var resv = sdoreadindex(nodeidoftheserver = banzishoumaisdoindex[banzihao],
+        var resv = sdoReadIndex(nodeidoftheserver = banzishoumaisdoindex[banzihao],
         index = 0x2010, subindex = index+1,
         )
         

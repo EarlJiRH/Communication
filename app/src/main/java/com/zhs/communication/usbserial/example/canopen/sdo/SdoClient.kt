@@ -7,8 +7,15 @@ import com.zhs.communication.utils.byte2unit
 import com.zhs.communication.utils.int2byte
 import com.zhs.communication.utils.toHexStr
 
+/**
+ * @param receive 接收的参数(rx)
+ * @param respond 响应的参数(tx)
+ * */
+class SdoClient(receive: Int, respond: Int) {
 
-class clientmy(rx_cobid: Int, tx_cobid: Int) {
+    companion object {
+        private const val TAG = "SdoClient"
+    }
 
     //: Max time in seconds to wait for response from server
     val RESPONSE_TIMEOUT = 300 //ms
@@ -34,51 +41,28 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
 
     var responses: MutableList<ByteArray> = mutableListOf()
 
-
-    var networkmy: Network? = null
+    var network: Network? = null
 
     init {
-        rx_cobidmy = rx_cobid
-        tx_cobidmy = tx_cobid
+        rx_cobidmy = receive
+        tx_cobidmy = respond
     }
 
 
-    fun on_response(can_id: Int, data: ByteArray, timestamp: Float = 0.0F) {
+    fun addResponse(can_id: Int, data: ByteArray, timestamp: Float = 0.0F) {
 //        println("回调 canid = ${can_id.toString(16)}")
         responses.add(data)
     }
 
-    companion object {
-        private const val TAG = "SdoClient"
-    }
 
-    fun send_request(request: ByteArray) {
-
-
+    fun sendRequest(request: ByteArray) {
         var retries_left = MAX_RETRIES
-        try {
-//                if (PAUSE_BEFORE_SEND>0.0) {
-//                    //time.sleep(self.PAUSE_BEFORE_SEND)
-//
-//                }
-            LogUtils.e(TAG, "sendMessage 发送数据 serial ${toHexStr(request)}")
-            networkmy?.sendMessage(rx_cobidmy, request, usemanthread = true)
-//                except CanError as e :
-//                // Could be a buffer overflow. Wait some time before trying again
-//                retries_left -= 1
-//                if not retries_left :
-//                raise
-//                logger.info(str(e))
-//                time.sleep(0.1)
-//                else:
-//                break
-        } catch (e: Exception) {
-            println(e)
-        }
-
+        LogUtils.e(TAG, "sendMessage 发送数据 serial ${toHexStr(request)}")
+        network?.sendMessage(rx_cobidmy, request, userMainThread = true)
     }
 
-    fun read_response(): ByteArray {
+    fun readResponse(): ByteArray {
+
         try {
             var fok = false
             for (ii in 1..RESPONSE_TIMEOUT) {
@@ -93,14 +77,14 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
 
 
             if (fok) {
-                var response = responses[0]
+                val response = responses[0]
 //            get(
 //                block=True, timeout=self.RESPONSE_TIMEOUT)
 //            except queue.Empty:
 //            raise SdoCommunicationError("No SDO response received")
 //            res_command, = struct.unpack_from("B", response)
-                var res_command = byte2unit(response[0])
-                if (res_command == RESPONSE_ABORTED) {
+                val resCommand = byte2unit(response[0])
+                if (resCommand == RESPONSE_ABORTED) {
                     println("canopen fanshui 异常$response")
 
                     println(SdoAbortedError(getExceptCode(response)).getErrorCodeString())
@@ -148,53 +132,18 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
 
 
 
-        on_response(0x00, data)
+        addResponse(0x00, data)
     }
 
-    fun request_response(sdo_request: ByteArray): ByteArray {
-
-        var res: ByteArray = ByteArray(0)
-        var retries_left = MAX_RETRIES
-//        if not self . responses . empty ():
+    fun requestAndResponse(sdo_request: ByteArray): ByteArray {
         if (responses.isNotEmpty()) {
             responses.clear()
         }
-
-        send_request(sdo_request)
-
-        // Wait for node to respond
-        try {
-            //TODO 调试用的
-//            addrxdatatestdebugmy()
-
-            res = read_response()
-        } catch (e: Exception) {
-
-        }
-//            return self.read_response()
-//            except SdoCommunicationError as e :
-//            retries_left -= 1
-//            if not retries_left :
-//            self.abort(0x5040000)
-//            raise
-//            logger.warning(str(e))
-
+        sendRequest(sdo_request)
         //调试
-
-
-        return res
+        return readResponse()
     }
 
-    fun abort(abort_code: Int = 0x08000000) {
-//        """Abort current transfer."""
-//        request = bytearray(8)
-//        request[0] = REQUEST_ABORTED
-//        // TODO: Is it necessary to include index and subindex?
-//        struct.pack_into("<L", request, 4, abort_code)
-//        self.send_request(request)
-//        logger.error("Transfer aborted by client with code 0x{:08X}".format(abort_code))
-
-    }
 
     fun upload(index: Int, subindex: Int): ByteArray {
         //    """May be called to make a read operation without an Object Dictionary.
@@ -229,21 +178,6 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
 
         }
 
-
-//        if (size >0) {
-//        // Node did not specify how many bytes to use
-//        // Try to find out using Object Dictionary
-//        var = self.od.get_variable(index, subindex)
-//        if var is not None:
-//        // Found a matching variable in OD
-//        // If this is a data type (string, domain etc) the size is
-//        // unknown anyway so keep the data as is
-//        if var.data_type not in objectdictionary.DATA_TYPES:
-//        // Get the size in bytes for this variable
-//        size = len(var) // 8
-//        // Truncate the data to specified size
-//        data = data[0:size]
-//        }
         return data
     }
 
@@ -307,7 +241,7 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
     }
 
 
-    class ReadableStream(sdo_client1: clientmy, index: Int, subindex: Int = 0) {
+    class ReadableStream(sdoClient: SdoClient, index: Int, subIndex: Int = 0) {
 
         companion object {
             private const val TAG = "ReadableStream"
@@ -317,7 +251,7 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
         //: Total size of data or ``None`` if not specified
 //        size = None
         var _done = false
-        var sdo_client: clientmy? = null
+        var sdo_client: SdoClient? = null
         var _toggle = 0
         var pos = 0
         var exp_data = ByteArray(0)
@@ -327,7 +261,7 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
         init {
             fok_r = false
             _done = false
-            sdo_client = sdo_client1
+            sdo_client = sdoClient
             _toggle = 0
             pos = 0
 
@@ -344,9 +278,9 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
 //        logger.debug("Reading 0x%X:%d from node %d", index, subindex,
 //        sdo_client.rx_cobid - 0x600)
             var request = ByteArray(8)
-            request = SdoStructUtils.pack_into(request, 0, REQUEST_UPLOAD, index, subindex)
+            request = SdoStructUtils.pack_into(request, 0, REQUEST_UPLOAD, index, subIndex)
 
-            var response = sdo_client!!.request_response(request)
+            var response = sdo_client!!.requestAndResponse(request)
 
             if (response.isNotEmpty()) {
                 var res_command = SdoStructUtils.unpack_from_cmd(response)
@@ -360,7 +294,7 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
                     println("Unexpected response $res_command")
                 } else {
                     // Check that the message is for us
-                    if ((res_index != index) or (res_subindex != subindex)) {
+                    if ((res_index != index) or (res_subindex != subIndex)) {
                         //                    raise SdoCommunicationError((
                         //            "Node returned a value for 0x{:X}:{:d} instead, "
                         //            "maybe there is another SDO client communicating "
@@ -455,7 +389,7 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
 
             var request = ByteArray(8)
             request[0] = int2byte(command and 0xff)
-            var response = sdo_client?.request_response(request)
+            var response = sdo_client?.requestAndResponse(request)
 
             if (response != null) {
                 if (response.isNotEmpty()) {
@@ -512,7 +446,7 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
     //
 //
     class WritableStream(
-        sdo_client1: clientmy,
+        sdo_client1: SdoClient,
         index: Int,
         subindex: Int = 0,
         size1: Int = -1,
@@ -526,7 +460,7 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
 
         var fok_w = false  //有没有出错  出错就不在写
 
-        var sdo_client: clientmy? = null
+        var sdo_client: SdoClient? = null
         var _toggle: Int = 0
         var pos = 0
         var exp_data = ByteArray(0)
@@ -557,16 +491,16 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
                 }
 
                 request = SdoStructUtils.pack_into(request, 0, command, index, subindex)
-                val response = sdo_client?.request_response(request)
+                val response = sdo_client?.requestAndResponse(request)
                 if (response != null) {
                     if (response.isNotEmpty()) {
 
 
-                        var res_command = response.let { SdoStructUtils.unpack_from_cmd(it) }
-                        if (res_command != RESPONSE_DOWNLOAD) {
+                        val resCommand = response.let { SdoStructUtils.unpack_from_cmd(it) }
+                        if (resCommand != RESPONSE_DOWNLOAD) {
                             //                raise SdoCommunicationError (
                             //                        "Unexpected response 0x%02X" % res_command)
-                            println("Unexpected response 0x${res_command}")
+                            println("Unexpected response 0x${resCommand}")
                         } else {
                             fok_w = true
                         }
@@ -619,7 +553,7 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
                     }
                 }
                 var request = _exp_header + bsiz4
-                var response = sdo_client?.request_response(request)
+                var response = sdo_client?.requestAndResponse(request)
                 if (response != null) {
                     if (response.isNotEmpty()) {
                         var res_command = response?.let { SdoStructUtils.unpack_from_cmd(it) }
@@ -660,29 +594,24 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
                 command = command or ((7 - bytes_sent) shl 1)
                 request[0] = command.toByte()
                 //            request[1:bytes_sent+1] = b[0:bytes_sent]
-                for (ii in 0..(bytes_sent - 1)) {
+                for (ii in 0 until bytes_sent) {
                     request[ii + 1] = b[ii]
                 }
 
 
-                var response = sdo_client?.request_response(request)
+                var response = sdo_client?.requestAndResponse(request)
                 if (response != null) {
                     if (response.isNotEmpty()) {
 
-                        var res_command = byte2unit(response[0])
-                        if ((res_command and 0xE0) != RESPONSE_SEGMENT_DOWNLOAD) {
-                            //                        raise SdoCommunicationError (
-                            //                    "Unexpected response 0x%02X (expected 0x%02X)" %
-                            //                            (res_command, RESPONSE_SEGMENT_DOWNLOAD))
-                            println("Unexpected response 0x${res_command} (expected 0x${RESPONSE_SEGMENT_DOWNLOAD})")
+                        var resCommand = byte2unit(response[0])
+                        if ((resCommand and 0xE0) != RESPONSE_SEGMENT_DOWNLOAD) {
+                            println("Unexpected response 0x${resCommand} (expected 0x${RESPONSE_SEGMENT_DOWNLOAD})")
                         } else {
                             fok_w = true
                         }
                     }
 
                 }
-                //
-                //            // Advance position
 
             }
             pos += bytes_sent
@@ -691,7 +620,6 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
             return bytes_sent
         }
 
-        //
         fun close() {
             if ((!_done) and (_exp_header.isNotEmpty())) {
                 // Segmented download not finished
@@ -700,342 +628,17 @@ class clientmy(rx_cobid: Int, tx_cobid: Int) {
                 command = command or _toggle
                 // No data in this message
                 command = command or (7 shl 1)
-                var request = ByteArray(8)
+                val request = ByteArray(8)
                 request[0] = int2byte(command)
 
-                sdo_client?.request_response(request)
+                sdo_client?.requestAndResponse(request)
                 _done = true
             }
         }
-//            fun writable(self):
-//            return True
-//
-//            fun tell(self):
-//            return self.pos
 
     }
 
-
-   /* class BlockUploadStream(io.RawIOBase):
-        """File like object for reading from a variable using block upload."""
-
-    //: Total size of data or ``None`` if not specified
-    size = None
-
-    blksize = 127
-
-    crc_supported = False
-
-    fun __init__(  sdo_client, index, subindex=0, request_crc_support=True):
-    """
-        :param canopen.sdo.SdoClient sdo_client:
-            The SDO client to use for reading.
-        :param int index:
-            Object dictionary index to read from.
-        :param int subindex:
-            Object dictionary sub-index to read from.
-        :param bool request_crc_support:
-            If crc calculation should be requested when using block transfer
-        """
-    self._done = False
-    self.sdo_client = sdo_client
-    self.pos = 0
-    self._crc = sdo_client.crc_cls()
-    self._server_crc = None
-    self._ackseq = 0
-
-    logger.debug("Reading 0x%X:%d from node %d", index, subindex,
-    sdo_client.rx_cobid - 0x600)
-    // Initiate Block Upload
-    request = bytearray(8)
-    command = REQUEST_BLOCK_UPLOAD | INITIATE_BLOCK_TRANSFER
-    if request_crc_support:
-    command |= CRC_SUPPORTED
-    struct.pack_into("<BHBBB", request, 0,
-    command, index, subindex, self.blksize, 0)
-    response = sdo_client.request_response(request)
-    res_command, res_index, res_subindex = SdoStructUtils.unpack_from(response)
-    if res_command & 0xE0 != RESPONSE_BLOCK_UPLOAD:
-    raise SdoCommunicationError("Unexpected response 0x%02X" % res_command)
-    // Check that the message is for us
-    if res_index != index or res_subindex != subindex:
-    raise SdoCommunicationError((
-    "Node returned a value for 0x{:X}:{:d} instead, "
-    "maybe there is another SDO client communicating "
-    "on the same SDO channel?").format(res_index, res_subindex))
-    if res_command & BLOCK_SIZE_SPECIFIED:
-    self.size, = struct.unpack_from("<L", response, 4)
-    logger.debug("Size is %d bytes", self.size)
-    self.crc_supported = bool(res_command & CRC_SUPPORTED)
-    // Start upload
-    request = bytearray(8)
-    request[0] = REQUEST_BLOCK_UPLOAD | START_BLOCK_UPLOAD
-    sdo_client.send_request(request)
-
-    fun read(  size=-1):
-    """Read one segment which may be up to 7 bytes.
-
-        :param int size:
-            If size is -1, all data will be returned. Other values are ignored.
-
-        :returns: 1 - 7 bytes of data or no bytes if EOF.
-        :rtype: bytes
-        """
-    if self._done:
-    return b""
-    if size is None or size < 0:
-    return self.readall()
-
-    try:
-    response = self.sdo_client.read_response()
-    except SdoCommunicationError:
-    response = self._retransmit()
-    res_command, = struct.unpack_from("B", response)
-    seqno = res_command & 0x7F
-    if seqno == self._ackseq + 1:
-    self._ackseq = seqno
-    else:
-    // Wrong sequence number
-    response = self._retransmit()
-    res_command, = struct.unpack_from("B", response)
-    if self._ackseq >= self.blksize or res_command & NO_MORE_BLOCKS:
-    self._ack_block()
-    if res_command & NO_MORE_BLOCKS:
-    n = self._end_upload()
-    data = response[1:8 - n]
-    self._done = True
-    else:
-    data = response[1:8]
-    if self.crc_supported:
-    self._crc.process(data)
-    if self._done:
-    if self._server_crc != self._crc.final():
-    self.sdo_client.abort(0x05040004)
-    raise SdoCommunicationError("CRC is not OK")
-    logger.info("CRC is OK")
-    self.pos += len(data)
-    return data
-
-    fun _retransmit(self):
-    logger.info("Only %d sequences were received. Requesting retransmission",
-    self._ackseq)
-    end_time = time.time() + self.sdo_client.RESPONSE_TIMEOUT
-    self._ack_block()
-    while time.time() < end_time:
-    response = self.sdo_client.read_response()
-    res_command, = struct.unpack_from("B", response)
-    seqno = res_command & 0x7F
-    if seqno == self._ackseq + 1:
-    // We should be back in sync
-    self._ackseq = seqno
-    return response
-    raise SdoCommunicationError("Some data were lost and could not be retransmitted")
-
-    fun _ack_block(self):
-    request = bytearray(8)
-    request[0] = REQUEST_BLOCK_UPLOAD | BLOCK_TRANSFER_RESPONSE
-    request[1] = self._ackseq
-    request[2] = self.blksize
-    self.sdo_client.send_request(request)
-    if self._ackseq == self.blksize:
-    self._ackseq = 0
-
-    fun _end_upload(self):
-    response = self.sdo_client.read_response()
-    res_command, self._server_crc = struct.unpack_from("<BH", response)
-    if res_command & 0xE0 != RESPONSE_BLOCK_UPLOAD:
-    self.sdo_client.abort(0x05040001)
-    raise SdoCommunicationError("Unexpected response 0x%02X" % res_command)
-    if res_command & 0x3 != END_BLOCK_TRANSFER:
-    self.sdo_client.abort(0x05040001)
-    raise SdoCommunicationError("Server did not end transfer as expected")
-    // Return number of bytes not used in last message
-    return (res_command >> 2) & 0x7
-
-    fun close(self):
-    if self.closed:
-    return
-    super(BlockUploadStream, self).close()
-    if self._done:
-    request = bytearray(8)
-    request[0] = REQUEST_BLOCK_UPLOAD | END_BLOCK_TRANSFER
-    self.sdo_client.send_request(request)
-
-    fun tell(self):
-    return self.pos
-
-    fun readinto(  b):
-    """
-        Read bytes into a pre-allocated, writable bytes-like object b,
-        and return the number of bytes read.
-        """
-    data = self.read(7)
-    b[:len(data)] = data
-    return len(data)
-
-    fun readable(self):
-    return True
-
-
-    class BlockDownloadStream(io.RawIOBase):
-        """File like object for block download."""
-
-    fun __init__(  sdo_client, index, subindex=0, size=None, request_crc_support=True):
-    """
-        :param canopen.sdo.SdoClient sdo_client:
-            The SDO client to use for communication.
-        :param int index:
-            Object dictionary index to read from.
-        :param int subindex:
-            Object dictionary sub-index to read from.
-        :param int size:
-            Size of data in number of bytes if known in advance.
-        :param bool request_crc_support:
-            If crc calculation should be requested when using block transfer
-        """
-    self.sdo_client = sdo_client
-    self.size = size
-    self.pos = 0
-    self._done = False
-    self._seqno = 0
-    self._crc = sdo_client.crc_cls()
-    self._last_bytes_sent = 0
-    command = REQUEST_BLOCK_DOWNLOAD | INITIATE_BLOCK_TRANSFER
-    if request_crc_support:
-    command |= CRC_SUPPORTED
-    request = bytearray(8)
-    logger.info("Initiating block download for 0x%X:%d", index, subindex)
-    if size is not None:
-    logger.debug("Expected size of data is %d bytes", size)
-    command |= BLOCK_SIZE_SPECIFIED
-    struct.pack_into("<L", request, 4, size)
-    else:
-    logger.warning("Data size has not been specified")
-    SdoStructUtils.pack_into(request, 0, command, index, subindex)
-    response = sdo_client.request_response(request)
-    res_command, res_index, res_subindex = SdoStructUtils.unpack_from(response)
-    if res_command & 0xE0 != RESPONSE_BLOCK_DOWNLOAD:
-    self.sdo_client.abort(0x05040001)
-    raise SdoCommunicationError(
-    "Unexpected response 0x%02X" % res_command)
-    // Check that the message is for us
-    if res_index != index or res_subindex != subindex:
-    self.sdo_client.abort()
-    raise SdoCommunicationError((
-    "Node returned a value for 0x{:X}:{:d} instead, "
-    "maybe there is another SDO client communicating "
-    "on the same SDO channel?").format(res_index, res_subindex))
-    self._blksize, = struct.unpack_from("B", response, 4)
-    logger.debug("Server requested a block size of %d", self._blksize)
-    self.crc_supported = bool(res_command & CRC_SUPPORTED)
-
-    fun write(  b):
-    """
-        Write the given bytes-like object, b, to the SDO server, and return the
-        number of bytes written. This will be at most 7 bytes.
-
-        :param bytes b:
-            Data to be transmitted.
-
-        :returns:
-            Number of bytes successfully sent or ``None`` if length of data is
-            less than 7 bytes and the total size has not been reached yet.
-        """
-    if self._done:
-    raise RuntimeError("All expected data has already been transmitted")
-    // Can send up to 7 bytes at a time
-    data = b[0:7]
-    if self.size is not None and self.pos + len(data) >= self.size:
-    // This is the last data to be transmitted based on expected size
-    self.send(data, end=True)
-    elif len(data) < 7:
-    // We can't send less than 7 bytes in the middle of a transmission
-    return None
-    else:
-    self.send(data)
-    return len(data)
-
-    fun send(  b, end=False):
-    """Send up to 7 bytes of data.
-
-        :param bytes b:
-            0 - 7 bytes of data to transmit.
-        :param bool end:
-            If this is the last data.
-        """
-    assert len(b) <= 7, "Max 7 bytes can be sent"
-    if not end:
-    assert len(b) == 7, "Less than 7 bytes only allowed if last data"
-    self._seqno += 1
-    command = self._seqno
-    if end:
-    command |= NO_MORE_BLOCKS
-    self._done = True
-    // Change expected ACK:ed sequence
-    self._blksize = self._seqno
-    // Save how many bytes this message contains since this is the last
-    self._last_bytes_sent = len(b)
-    request = bytearray(8)
-    request[0] = command
-    request[1:len(b) + 1] = b
-    self.sdo_client.send_request(request)
-    self.pos += len(b)
-    if self.crc_supported:
-    // Calculate CRC
-    self._crc.process(b)
-    if self._seqno >= self._blksize:
-    // End of this block, wait for ACK
-    self._block_ack()
-
-    fun tell(self):
-    return self.pos
-
-    fun _block_ack(self):
-    logger.debug("Waiting for acknowledgement of last block...")
-    response = self.sdo_client.read_response()
-    res_command, ackseq, blksize = struct.unpack_from("BBB", response)
-    if res_command & 0xE0 != RESPONSE_BLOCK_DOWNLOAD:
-    self.sdo_client.abort(0x05040001)
-    raise SdoCommunicationError(
-    "Unexpected response 0x%02X" % res_command)
-    if res_command & 0x3 != BLOCK_TRANSFER_RESPONSE:
-    self.sdo_client.abort(0x05040001)
-    raise SdoCommunicationError("Server did not respond with a "
-    "block download response")
-    if ackseq != self._blksize:
-    self.sdo_client.abort(0x05040003)
-    raise SdoCommunicationError(
-    ("%d of %d sequences were received. "
-    "Retransmission is not supported yet.") % (ackseq, self._blksize))
-    logger.debug("All %d sequences were received successfully", ackseq)
-    logger.debug("Server requested a block size of %d", blksize)
-    self._blksize = blksize
-    self._seqno = 0
-
-    fun close(self):
-    """Closes the stream."""
-    if self.closed:
-    return
-    super(BlockDownloadStream, self).close()
-    if not self._done:
-    logger.error("Block transfer was not finished")
-    command = REQUEST_BLOCK_DOWNLOAD | END_BLOCK_TRANSFER
-    // Specify number of bytes in last message that did not contain data
-    command |= (7 - self._last_bytes_sent) << 2
-    request = bytearray(8)
-    request[0] = command
-    if self.crc_supported:
-    // Add CRC
-    struct.pack_into("<H", request, 1, self._crc.final())
-    logger.debug("Ending block transfer...")
-    response = self.sdo_client.request_response(request)
-    res_command, = struct.unpack_from("B", response)
-    if not res_command & END_BLOCK_TRANSFER:
-    raise SdoCommunicationError("Block download unsuccessful")
-    logger.info("Block download successful")
-
-    fun writable(self):
-    return True*/
 }
+
 
 

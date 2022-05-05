@@ -1,11 +1,11 @@
 package com.zhs.communication.controller.common
 
 import android.os.Environment
-import com.example.myapplication.control_my.common.Paramsvar
 import com.zhs.communication.usbserial.example.Network
-import com.zhs.communication.usbserial.example.callback_sdoserver_2
-import com.zhs.communication.usbserial.example.canopen.sdo.clientmy
-import com.zhs.communication.usbserial.example.canopen.sdo.servermy
+import com.zhs.communication.usbserial.example.SdoServerCallbackImpl
+import com.zhs.communication.usbserial.example.canopen.sdo.DataDot
+import com.zhs.communication.usbserial.example.canopen.sdo.SdoClient
+import com.zhs.communication.usbserial.example.canopen.sdo.SdoServer
 import com.zhs.communication.utils.byte2unit
 import com.zhs.communication.utils.int2byte
 import java.io.File
@@ -30,7 +30,6 @@ open class FoodCart : Paramsvar() {
         val logFile: File = File(logFilePath)
 
         fun getLogFileText(): String {
-
             return if (logFile.exists()) {
                 logFile.readText()
             } else {
@@ -55,10 +54,10 @@ open class FoodCart : Paramsvar() {
         :param subindex:
         :param data:
         :return:
-     */
-        for (cli in SDO_NODE_ID_OF_THE_SERVER_list) {
+         */
+        for (cli in SDO_NODE_ID_OF_THE_SERVER_LIST) {
             if (cli == nodeidoftheserver) {
-                val fok = SDOLISTcli[cli]?.get(1)?.let {
+                val fok = SDO_LIST_CLIENT_MAP[cli]?.second?.let {
                     network.getsubscriberclicli(it)
                         ?.download(index, subindex, data)
                 }
@@ -71,7 +70,7 @@ open class FoodCart : Paramsvar() {
 
 
     /**CANopen 通信*/
-    fun sdoreadindex(nodeidoftheserver: Int, index: Int = 0x2020, subindex: Int = 1): Int? {
+    fun sdoReadIndex(nodeidoftheserver: Int, index: Int = 0x2020, subindex: Int = 1): Int? {
 
 
         /*"""
@@ -89,11 +88,11 @@ open class FoodCart : Paramsvar() {
 //
 //            }
 //        }
-        for (cli in SDO_NODE_ID_OF_THE_SERVER_list) {
+        for (cli in SDO_NODE_ID_OF_THE_SERVER_LIST) {
             if (cli == nodeidoftheserver) {
 //                System.out.println("sdoreadindex=${cli.toString(16)}")
 
-                val datab = SDOLISTcli[cli]?.get(1)?.let {
+                val datab = SDO_LIST_CLIENT_MAP[cli]?.second?.let {
                     network.getsubscriberclicli(it)
                         ?.upload(index, subindex)
                 }
@@ -203,13 +202,11 @@ open class FoodCart : Paramsvar() {
 
     }
 
-    private fun addloclvarsdoserver_1(t: servermy) {
+    private fun addloclvarsdoserver_1(t: SdoServer) {
         //测试添加变量
-        val ttc = callback_sdoserver_2()
-        val td = servermy.datasdot(indexx = 0x2010, subindexx = 1, datasizex = 1, datadata_int = 1)
-        td.callback = ttc
+        val ttc = SdoServerCallbackImpl()
+        val td = DataDot(index = 0x2010, subIndex = 1, dataSize = 1, data = 1, callback = ttc)
         t.local_data.add(td)
-
     }
 
 
@@ -292,14 +289,14 @@ open class FoodCart : Paramsvar() {
 
         println("初始化  ${2}.")
         //初始化canopen cli
-        for (sdocli in SDOLISTcli) {
-            val cli = clientmy(sdocli.value[0], sdocli.value[1])
-            cli.networkmy = network
+        for (sdocli in SDO_LIST_CLIENT_MAP) {
+            val cli = SdoClient(sdocli.value.first, sdocli.value.second)
+            cli.network = network
             network.addsubscriber(cli)
         }
 
-        for (sdoser in SDOLISTserver) {
-            val ser = servermy(sdoser.value[0], sdoser.value[1])
+        for (sdoser in SDO_LIST_SERVER_MAP) {
+            val ser = SdoServer(sdoser.value.first, sdoser.value.second)
             ser.networkmy = network
             network.addsubscriberserver(ser)
             addloclvarsdoserver_1(ser)

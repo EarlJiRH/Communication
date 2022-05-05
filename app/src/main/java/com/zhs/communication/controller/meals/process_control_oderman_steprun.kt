@@ -1,9 +1,8 @@
 package com.zhs.communication.controller.meals
 
-import com.example.myapplication.control_my.baozishoumaiji.process_control_md_constep_steprun2
+import com.blankj.utilcode.util.LogUtils
 import com.zhs.communication.controller.time
-import com.zhs.communication.usbserial.example.callback_sdoserver_2
-import java.lang.Exception
+import com.zhs.communication.usbserial.example.SdoServerCallbackImpl
 
 open class process_control_oderman_steprun : process_control_md_constep_steprun2() {
 
@@ -11,26 +10,29 @@ open class process_control_oderman_steprun : process_control_md_constep_steprun2
      * 读取数组内容运行 控制
     
      */
+    companion object {
+        private const val TAG = "process_control_oderman"
+    }
 
-
-    fun runthread_stop() {
+    fun stopRunThread() {
         ordermianrunf = false
     }
 
-    fun startrunodermain_func() {
+
+    fun startRunOderMain() {
         //单独的线程运行
 
         MB_printf("run odermain")
 //        Thread.sleep(3000)
-        var rest = sdoreadindex(0x62, 0x2010, 1)
-        System.out.println("testtt ----------------------------------------------------res=${rest}")
+        val rest = sdoReadIndex(0x62, 0x2010, 1)
+        LogUtils.e(TAG, "startRunOderMain: res=${rest}")
+
         while (ordermianrunf) {
             time.sleep(100)//100ms
-            if (ordermianrun_suspend_f == false) {
+            if (!ordermianrun_suspend_f) {
                 order_main(1)
                 order_main(1, run_th = 1)
                 order_runmain(1)
-
             }
         }
 
@@ -40,42 +42,37 @@ open class process_control_oderman_steprun : process_control_md_constep_steprun2
     }
 
     fun checklocksdodata() {
-        try {
-            if (localsdolistalll.size > 0) {
-                MB_printf("有要处理的信号")
-                if ("key" in localsdolistalll) {
-                    var keydata = localsdolistalll.get("key")
 
-                    if ((keydata == 1)) {
-                        if ((callback_sdoserver_2.canopentestmytt!!.myorder_step_saveth[0][0] == callback_sdoserver_2.canopentestmytt!!.WORK_STEP1) or
-                            (callback_sdoserver_2.canopentestmytt!!.myorder_step_saveth[1][0] == callback_sdoserver_2.canopentestmytt!!.WORK_STEP1)
-                        ) {
+        if (localsdolistalll.isNotEmpty()) {
+            MB_printf("有要处理的信号")
+            if ("key" in localsdolistalll) {
+                var keydata = localsdolistalll.get("key")
 
-                            callback_sdoserver_2.canopentestmytt!!.MB_printf(
-                                "不能控制  正在运行其他动作 请在当前控制完成后再控制 ${callback_sdoserver_2.canopentestmytt!!.myorder_step_saveth[0][0]} " +
-                                        "${callback_sdoserver_2.canopentestmytt!!.myorder_step_saveth[1][0]} ${callback_sdoserver_2.canopentestmytt!!.WORK_STEP1}"
-                            )
-                            callback_sdoserver_2.canopentestmytt!!.playAudio("当前有工作在运行请稍后再试")
-                        } else {
+                if ((keydata == 1)) {
+                    if ((SdoServerCallbackImpl.canopentestmytt!!.myorder_step_saveth[0][0] == SdoServerCallbackImpl.canopentestmytt!!.WORK_STEP1) or
+                        (SdoServerCallbackImpl.canopentestmytt!!.myorder_step_saveth[1][0] == SdoServerCallbackImpl.canopentestmytt!!.WORK_STEP1)
+                    ) {
+
+                        SdoServerCallbackImpl.canopentestmytt!!.MB_printf(
+                            "不能控制  正在运行其他动作 请在当前控制完成后再控制 ${SdoServerCallbackImpl.canopentestmytt!!.myorder_step_saveth[0][0]} " +
+                                    "${SdoServerCallbackImpl.canopentestmytt!!.myorder_step_saveth[1][0]} ${SdoServerCallbackImpl.canopentestmytt!!.WORK_STEP1}"
+                        )
+                        SdoServerCallbackImpl.canopentestmytt!!.playAudio("当前有工作在运行请稍后再试")
+                    } else {
 //                var fok = canopentestmytt!!.ifworkbaozijimotormyconset(1, 0)
 //                if (fok){
-                            callback_sdoserver_2.canopentestmytt!!.baozijimotormyconset(
-                                1,
-                                0,
-                                1,
-                                1,
-                                5000
-                            )
+                        SdoServerCallbackImpl.canopentestmytt!!.baozijimotormyconset(
+                            1,
+                            0,
+                            1,
+                            1,
+                            5000
+                        )
 //                }
-                        }
                     }
-                    localsdolistalll.remove("key")
                 }
-
-
+                localsdolistalll.remove("key")
             }
-        } catch (e: Exception) {
-
         }
     }
 
@@ -113,7 +110,6 @@ open class process_control_oderman_steprun : process_control_md_constep_steprun2
 
         run_th_cut = run_th
 
-        //fun  todo 
         // myorder_step[:] =  myorder_step_saveth[(run_th * 2):((run_th+1) * 2)]
         myorder_stepget2myorder_step_saveth(run_th)
         for (i in 0..1) {
@@ -121,12 +117,10 @@ open class process_control_oderman_steprun : process_control_md_constep_steprun2
             //  /******工作流程*****/
             if (my_step0_get() == WORK_STEP1) {
                 myorder_dealy[channel] += timenum // //可能存在时间不足   测试使用 后期优化
-                var myorderdata3_0 = myorder_data3_get(0)
-
+                val myorderdata3_0 = myorder_data3_get(0)
 
                 //printshowallrunlog("当前控制步骤是第[{}] 步".format( my_step1_get()))
                 printshowallrunlog("当前控制步骤是第[${my_step1_get()}] 步 [" + myorderstep_string[my_step_id_get()][my_step1_get()][0])
-
 
                 when (myorderdata3_0) {
                     0 -> {
@@ -202,11 +196,13 @@ open class process_control_oderman_steprun : process_control_md_constep_steprun2
                         }
 
                     }
+
                     BZ_ZQFSQPWIF -> {  // 包子机的蒸汽发生器是否要排污
 
                         baozijizhengqifashengqipwuif()
                         myorder_step_add()
                     }
+
                     BZ_LC2JROKIF -> { //判断包子是否可以开始加热  冷藏到加热室运输完成
                         if (baozilc2jrokok == true) {
                             myorder_step_add()

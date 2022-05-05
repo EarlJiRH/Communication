@@ -161,11 +161,10 @@ open class process_control_shoumaiji_md_constep : process_control_shoumaiji_md_c
 
     open fun MB_printf(s: String) {
         println("日志:${s}")
+
     }
 
     fun stopchannlrun(run_th: Int = 0) {
-
-
         my_step0_set(WORK_STEP5)
         my_step1_set(0)   //
         my_step2_set(0)   //
@@ -263,7 +262,6 @@ open class process_control_shoumaiji_md_constep : process_control_shoumaiji_md_c
             MB_printf("--------步骤${my_step1_get()} 运行时间${runtime11 / 1000.0}")
             my_step1_set(my_step1_get() + 1, runtime11)
         } else {
-
             my_step1_set(my_step1_get() + 1)
             my_step2_set(0)
             // my_step1() += 1
@@ -277,7 +275,6 @@ open class process_control_shoumaiji_md_constep : process_control_shoumaiji_md_c
         for (i in myorder_step.indices) {
             for (j in myorder_step[i].indices) {
                 myorder_step[i][j] = myorder_step_saveth[run_th * 2 + i][j]
-
             }
         }
     }

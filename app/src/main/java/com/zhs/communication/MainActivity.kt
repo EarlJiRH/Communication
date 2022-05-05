@@ -270,9 +270,9 @@ class MainActivity : BaseActivity(), View.OnClickListener  {
                     //清空不可买数据
                     mainStatus("清空不可买数据")
                     mCanService?.apply {
-                        canopenttt.setbaoziweizhi11(0)
-                        canopenttt.baozijr2jrokok = false
-                        mainStatus(canopenttt.getshowstrbaozisgate())
+                        canopenTest.setbaoziweizhi11(0)
+                        canopenTest.baozijr2jrokok = false
+                        mainStatus(canopenTest.getshowstrbaozisgate())
                     }
                 }
 
@@ -280,8 +280,8 @@ class MainActivity : BaseActivity(), View.OnClickListener  {
                     //设置为成功状态
                     mainStatus("设置运输完可加热")
                     mCanService?.apply {
-                        canopenttt.baozilc2jrokok = true
-                        mainStatus(canopenttt.getshowstrbaozisgate())
+                        canopenTest.baozilc2jrokok = true
+                        mainStatus(canopenTest.getshowstrbaozisgate())
                     }
 //
                 }
@@ -290,16 +290,16 @@ class MainActivity : BaseActivity(), View.OnClickListener  {
                     //加满
                     mainStatus("设置加满可买")
                     mCanService?.apply {
-                        canopenttt.setbaoziweizhi11(1)
-                        canopenttt.baozijr2jrokok = true
-                        mainStatus(canopenttt.getshowstrbaozisgate())
+                        canopenTest.setbaoziweizhi11(1)
+                        canopenTest.baozijr2jrokok = true
+                        mainStatus(canopenTest.getshowstrbaozisgate())
                     }
                 }
 
                 R.id.stateBtn -> {
                     //状态
                     mCanService?.apply {
-                        mainStatus(canopenttt.getshowstrbaozisgate())
+                        mainStatus(canopenTest.getshowstrbaozisgate())
                     }
                 }
 
@@ -307,7 +307,7 @@ class MainActivity : BaseActivity(), View.OnClickListener  {
                     //发送数据包 写入
                     mainStatus("点击写命令--------------")
                     mCanService?.apply {
-                        val fok = canopenttt.downloadt(
+                        val fok = canopenTest.downloadt(
                             spinnerServer.selectedItem as String,
                             spinnerIndex.selectedItem as String,
                             spinnerSubIndex.selectedItem as String,
@@ -326,7 +326,7 @@ class MainActivity : BaseActivity(), View.OnClickListener  {
                     //读取底盘数据 读取
                     var fok = false
                     mCanService?.apply {
-                        fok = canopenttt.uploadTest(
+                        fok = canopenTest.uploadTest(
                             spinnerServer.selectedItem as String,
                             spinnerIndex.selectedItem as String,
                             spinnerSubIndex.selectedItem as String
@@ -347,17 +347,17 @@ class MainActivity : BaseActivity(), View.OnClickListener  {
                     println("startRunStepBtn=====${index}")
 
                     mCanService?.apply {
-                        if (canopenttt.myorder_step_saveth[index][0] == canopenttt.WORK_STEP1) {
+                        if (canopenTest.myorder_step_saveth[index][0] == canopenTest.WORK_STEP1) {
                             mainStatus("正在控制", resources.getColor(R.color.colorRedText))
                         } else {
                             val step = spinnerStep.selectedItem as String
                             //操作 08
                             val intStep = step.substring(0, 2).toInt()
                             mainStatus("操作流程=====${step}")
-                            canopenttt.defsetrunstepmytt(
+                            canopenTest.defsetrunstepmytt(
                                 index,
                                 intStep,
-                                canopenttt.WORK_STEP1,
+                                canopenTest.WORK_STEP1,
                                 0,
                                 0
                             )
@@ -371,25 +371,25 @@ class MainActivity : BaseActivity(), View.OnClickListener  {
                     val index =
                         (spinnerChannel.selectedItem as String).toString().substring(0, 1).toInt()
                     mCanService?.apply {
-                        canopenttt.ordermianrun_suspend_f = true
-                        canopenttt.stopchannelrun_mywaim(index)
-                        canopenttt.stopchannelrun_mywaim(index, run_th = 1)
-                        canopenttt.ordermianrun_suspend_f = false
+                        canopenTest.ordermianrun_suspend_f = true
+                        canopenTest.stopchannelrun_mywaim(index)
+                        canopenTest.stopchannelrun_mywaim(index, run_th = 1)
+                        canopenTest.ordermianrun_suspend_f = false
                     }
                 }
 
                 R.id.pauseStopRunBtn -> {
                     //暂停调试
                     mCanService?.apply {
-                        when (canopenttt.ordermianrun_suspend_f) {
+                        when (canopenTest.ordermianrun_suspend_f) {
                             true -> {
-                                canopenttt.ordermianrun_suspend_f = false
+                                canopenTest.ordermianrun_suspend_f = false
                                 mainStatus("继续控制", resources.getColor(R.color.colorRedText))
                                 (v as Button).text = "暂停"
                             }
 
                             false -> {
-                                canopenttt.ordermianrun_suspend_f = true
+                                canopenTest.ordermianrun_suspend_f = true
                                 mainStatus("已暂停 继续控制", resources.getColor(R.color.colorRedText))
                                 (v as Button).text = "继续"
                             }
@@ -400,11 +400,11 @@ class MainActivity : BaseActivity(), View.OnClickListener  {
                 R.id.singleStepDebuggingBtn -> {
                     //单步调试
                     mCanService?.apply {
-                        if (!canopenttt.zuhedongzuodanbutiaoshi) {
-                            canopenttt.zuhedongzuodanbutiaoshi = true
+                        if (!canopenTest.zuhedongzuodanbutiaoshi) {
+                            canopenTest.zuhedongzuodanbutiaoshi = true
                             mainStatus("组合动作单步调试已打开", resources.getColor(R.color.colorRedText))
                         } else {
-                            canopenttt.zuhedongzuodanbutiaoshi = false
+                            canopenTest.zuhedongzuodanbutiaoshi = false
                             mainStatus("组合动作单步调试已关闭", resources.getColor(R.color.colorRedText))
                         }
                     }

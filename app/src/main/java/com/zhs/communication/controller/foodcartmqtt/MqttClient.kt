@@ -209,7 +209,7 @@ open class MqttClient: MqttCallBack() {
         }
     }
 
-    fun init_mqtt(context: Context) {
+    fun initMqtt(context: Context) {
         // 初始化
         mMqttConfig = MqttConfig().create()
         mMqttConfig!!.setBaseUrl(params.MQTT_URI_baseUrl)
@@ -218,7 +218,7 @@ open class MqttClient: MqttCallBack() {
         MqttManager.getInstance().init(context, mMqttConfig!!) {
             //收到消息
             onMessageArrived { topic, message, qos ->
-                handleArrivedMessage(topic.toString(), message.toString())
+                handleArrivedMessage(topic, message.toString())
             }
             //连接失败
             onConnectionLost {

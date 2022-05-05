@@ -1,26 +1,30 @@
 package com.zhs.communication.usbserial.example
 
 import com.blankj.utilcode.util.LogUtils
-import com.zhs.communication.usbserial.example.canopen.sdo.clientmy
-import com.zhs.communication.usbserial.example.canopen.sdo.servermy
+import com.zhs.communication.usbserial.example.canopen.sdo.SdoClient
+import com.zhs.communication.usbserial.example.canopen.sdo.SdoServer
 import com.zhs.communication.utils.toHexStr
 
 class Network : UsbCanSerial() {
 
-    private var subscribers = mutableMapOf<Int, clientmy>()
-    private var subscribers_serv = mutableMapOf<Int, servermy>()
+    companion object {
+        private const val TAG = "Network"
+    }
+
+    private var subscribers = mutableMapOf<Int, SdoClient>()
+    private var subscribers_serv = mutableMapOf<Int, SdoServer>()
 
 
-    fun addsubscriber(sdocli: clientmy) {
+    fun addsubscriber(sdocli: SdoClient) {
         subscribers[sdocli.tx_cobidmy] = sdocli
     }
 
-    fun getsubscriberclicli(tx_cobidmy: Int): clientmy? {
+    fun getsubscriberclicli(tx_cobidmy: Int): SdoClient? {
 
         return subscribers[tx_cobidmy]!!
     }
 
-    fun addsubscriberserver(sdoserv: servermy) {
+    fun addsubscriberserver(sdoserv: SdoServer) {
         subscribers_serv[sdoserv.tx_cobidmy] = sdoserv
     }
 
@@ -45,32 +49,25 @@ class Network : UsbCanSerial() {
         if (subscribers.isNotEmpty()) {
             for (sub in subscribers) {
                 if (canid == sub.value.tx_cobidmy) {
-                    sub.value.on_response(canid, candata)
+                    sub.value.addResponse(canid, candata)
                 }
             }
         }
+
         if (subscribers_serv.isNotEmpty()) {
             for (sub in subscribers_serv) {
                 if (canid == sub.value.tx_cobidmy) {
-                    sub.value.on_request(canid, candata)
+                    sub.value.onRequest(canid, candata)
                 }
             }
         }
 
     }
 
-
-    companion object {
-        private const val TAG = "Network"
-    }
-
-
-    fun sendMessage(canid: Int, data: ByteArray, usemanthread: Boolean = false): Boolean {
-
-//        System.out.print("这里要发送数据 ${canid.toString(16)}  data=")
-//        printbaytearray(data)
+    fun sendMessage(canId: Int, data: ByteArray, userMainThread: Boolean = false){
         LogUtils.e(TAG, "sendMessage 发送数据 serial ${toHexStr(data)}")
-        SendDate2Can(canId = canid, canData = data, userMainThread = usemanthread)
-        return true
+        SendDate2Can(canId = canId, canData = data, userMainThread = userMainThread)
     }
+
+
 }

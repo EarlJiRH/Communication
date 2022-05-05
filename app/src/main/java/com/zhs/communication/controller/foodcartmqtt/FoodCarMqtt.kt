@@ -8,21 +8,21 @@ class FoodCarMqtt: MqttClient() {
     var runff = true
 //    var runffr = true
     
-    var canopentestmyttt : updatezhizupliucheng_u? = null
+    var canOpenTest : updatezhizupliucheng_u? = null
 
 
 
     override fun showlogprint(m:String){
-        canopentestmyttt!!.MB_printf(m)
+        canOpenTest!!.MB_printf(m)
     }
 
     fun afterisrunok(uschannel:Int,kongzhifanshi_zuhe:Int,msginfo:String){
-        if(canopentestmyttt!!.myorder_step_saveth[uschannel][0] != canopentestmyttt!!.WORK_STEP1){
-            canopentestmyttt!!.MB_printf("mqtt 开始运行控制 ${kongzhifanshi_zuhe}")
-            canopentestmyttt!!.defsetrunstepmytt(uschannel,kongzhifanshi_zuhe.toInt(),canopentestmyttt!!.WORK_STEP1,0,0)
+        if(canOpenTest!!.myorder_step_saveth[uschannel][0] != canOpenTest!!.WORK_STEP1){
+            canOpenTest!!.MB_printf("mqtt 开始运行控制 ${kongzhifanshi_zuhe}")
+            canOpenTest!!.defsetrunstepmytt(uschannel,kongzhifanshi_zuhe.toInt(),canOpenTest!!.WORK_STEP1,0,0)
         }
         else{
-            canopentestmyttt!!.MB_printf("mqtt 不能控制  正在运行控制")
+            canOpenTest!!.MB_printf("mqtt 不能控制  正在运行控制")
         }
     }
 
@@ -93,7 +93,7 @@ class FoodCarMqtt: MqttClient() {
         if (dengdaizhizuo > 0) {
             for (order_null in dengdaizhizuolist) {
 
-                if (canopentestmyttt!!.myorder_step[0][0]  == canopentestmyttt?.WORK_STEP1) {
+                if (canOpenTest!!.myorder_step[0][0]  == canOpenTest?.WORK_STEP1) {
                     showlogl("这个通道在工作中不能制作 包子机")
                 }
                 else {
@@ -107,7 +107,7 @@ class FoodCarMqtt: MqttClient() {
                         showlogl("${order_null}这个位置订单已发送成功到底层开始制作${dengdaizhizuo}")
                         showlogl("开始制作")
                         // self.play_audio("通道{}".format(order_null), "开始制作")
-                        canopentestmyttt!!.playAudio("开始制作")
+                        canOpenTest!!.playAudio("开始制作")
                         // self.name_type_3_starttime[order_null] = time.time()
 
                         // self.uiconcon.afterisrunok(order_null,
@@ -137,7 +137,7 @@ class FoodCarMqtt: MqttClient() {
                     showlogl("订单${order_null}制作完成等待取餐改变事件位置" )
                     params.posworkstate_diceng_state[0] = 0
                     // self.play_audio("通道{}".format(order_null), "制作完成")
-                    canopentestmyttt!!.playAudio("制作完成")
+                    canOpenTest!!.playAudio("制作完成")
                 }
             }
         }
@@ -189,7 +189,7 @@ class FoodCarMqtt: MqttClient() {
         if (qucanzhong > 0) {
             for( order_null in qucanzhonglist) {
                 // if time.time() - self.name_type_3_starttime[0] > 10:
-                if (canopentestmyttt!!.channel_state_tt[0] == params.devworkstates.WORK_STATE_MEAL_TAKEOUT) {
+                if (canOpenTest!!.channel_state_tt[0] == params.devworkstates.WORK_STATE_MEAL_TAKEOUT) {
                     params.order_array_id_state_cansend_state[
                             order_null] = params.devworkstates_diceng.DWORK_STATE_MEAL_TAKEOUT_3
 
@@ -199,19 +199,20 @@ class FoodCarMqtt: MqttClient() {
                     Create_change_JSON(order_null)
                     showlogl("订单取餐完成改变事件位置${order_null}")
                     // self.play_audio("通道{}".format(order_null), "取餐成功")
-                    canopentestmyttt!!.playAudio("取餐成功")
-                    canopentestmyttt!!.channel_state_tt[0] = 0
+                    canOpenTest!!.playAudio("取餐成功")
+                    canOpenTest!!.channel_state_tt[0] = 0
                 }
             }
 
         }
     }
     
-    fun runtest(){
+    fun runTest(){
         // 1 s 检测一次有没有新的订单 改变订单状态
         var runtimes = 0
         try {
             if (runff) {
+                //连接mqtt服务器
                 connect_server()
                 time.sleep(1000)
                 Create_time_JSON()

@@ -6,7 +6,6 @@ import com.zhs.communication.utils.byte2unit
 import com.zhs.communication.utils.toHexStr
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.abs
 
 open class UsbCanSerial {
 
@@ -25,11 +24,9 @@ open class UsbCanSerial {
     var mListener: SendCanListener? = null
 
 
-
-    fun checkCommandData(data: ByteArray, indexhead: Int): Int {
-
+    fun checkCommandData(data: ByteArray, indexHead: Int): Int {
         var sum: Int = 0
-        for (i in (indexhead + 2)..(byte2unit(data[indexhead + 3]) + 2)) {
+        for (i in (indexHead + 2)..(byte2unit(data[indexHead + 3]) + 2)) {
             sum += byte2unit(data[i])
         }
         return sum and 0xff
@@ -66,9 +63,7 @@ open class UsbCanSerial {
 //        }
 //        System.out.println("]")
 
-
         canData2handler(cankou, candatatype, canid, candatalen, candata)
-
     }
 
 

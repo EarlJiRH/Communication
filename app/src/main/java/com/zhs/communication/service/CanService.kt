@@ -21,7 +21,6 @@ import com.zhs.communication.eventbus.*
 import com.zhs.communication.lib.MqttManager
 import com.zhs.communication.usbserial.example.CANOpenTest
 import com.zhs.communication.usbserial.example.SendCanListener
-import com.zhs.communication.usbserial.example.callback_sdoserver_2
 import com.zhs.communication.utils.toHexStr
 import java.io.IOException
 
@@ -77,9 +76,9 @@ class CanService : Service(), SerialInputOutputManager.Listener, SendCanListener
     private var receiveallnum: Int = 0
     private var receiveallnumallbytes: Long = 0
 
-    var canopenttt = CANOpenTest()
+    var canopenTest = CANOpenTest()
 
-    var usbCanSerial = canopenttt.getNetWork()
+    var usbCanSerial = canopenTest.getNetWork()
 
     var mqtt1m = FoodCarMqtt()
 
@@ -96,26 +95,31 @@ class CanService : Service(), SerialInputOutputManager.Listener, SendCanListener
     private fun initCanMqtt() {
         LogUtils.e(TAG, "create  mm ")
 //        controlLines = ControlLines()
-        usbCanSerial.mListener = this
+
+//        usbCanSerial.mListener = this
 
 
-        canopenttt.mqttrunttapt = mqtt1m
+//        canopenTest.mqttrunttapt = mqtt1m
+//
+//        SdoServerCallbackImpl.canopentestmytt = canopenTest
+//
+//        mqtt1m.canOpenTest = canopenTest
 
-        callback_sdoserver_2.canopentestmytt = canopenttt
-
-        mqtt1m.canopentestmyttt = canopenttt
-        mqtt1m.init_mqtt(this)
-        Thread {
-            kotlin.run {
-                canopenttt.startrunodermain_func()
-            }
-        }.start()
+        //mqtt1m.initMqtt(this)
 
         Thread {
             kotlin.run {
-                mqtt1m.runtest()
+                canopenTest.startRunOderMain()
             }
+
         }.start()
+
+//        Thread {
+//            kotlin.run {
+//                mqtt1m.runTest()
+//            }
+//        }.start()
+
     }
 
 
@@ -194,7 +198,7 @@ class CanService : Service(), SerialInputOutputManager.Listener, SendCanListener
      */
     private fun connect_can() {
         status("connect ---")
-        canopenttt.MB_printf("正在连接 usb serial")
+        canopenTest.MB_printf("正在连接 usb serial")
         var device: UsbDevice? = null
         val usbManager = applicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
         for (v in usbManager.deviceList.values) {
@@ -204,7 +208,7 @@ class CanService : Service(), SerialInputOutputManager.Listener, SendCanListener
         }
         if (device == null) {
             status("connection failed: device not found")
-            canopenttt.MB_printf("usb serial connection failed: device not found")
+            canopenTest.MB_printf("usb serial connection failed: device not found")
             return
         }
         var driver = UsbSerialProber.getDefaultProber().probeDevice(device)
@@ -213,12 +217,12 @@ class CanService : Service(), SerialInputOutputManager.Listener, SendCanListener
         }
         if (driver == null) {
             status("connection failed: no driver for device")
-            canopenttt.MB_printf("usb serial connection failed: no driver for device")
+            canopenTest.MB_printf("usb serial connection failed: no driver for device")
             return
         }
         if (driver.ports.size < portNum) {
             status("connection failed: not enough ports at device")
-            canopenttt.MB_printf("usb serial connection failed: not enough ports at device")
+            canopenTest.MB_printf("usb serial connection failed: not enough ports at device")
             return
         }
         usbSerialPort = driver.ports[portNum]
@@ -251,13 +255,13 @@ class CanService : Service(), SerialInputOutputManager.Listener, SendCanListener
                 usbIoManager!!.start()
             }
             status("connected.")
-            canopenttt.MB_printf("usb serial connection USB CAN 连接成功")
+            canopenTest.MB_printf("usb serial connection USB CAN 连接成功")
             connected = true
             //controlLines!!.start()
         } catch (e: Exception) {
             status("connection failed: " + e.message)
             disconnect_can()
-            canopenttt.MB_printf("usb serial connection USB CAN 连接失败")
+            canopenTest.MB_printf("usb serial connection USB CAN 连接失败")
         }
     }
 
@@ -340,9 +344,9 @@ class CanService : Service(), SerialInputOutputManager.Listener, SendCanListener
 
     override fun onDestroy() {
         LogUtils.i(TAG, "$TAG - onDestroy - Thread = " + Thread.currentThread().name)
-        canopenttt.runthread_stop()
-        mqtt1m.runff = false
-        mqtt1m.disconnectmqtt()
+        canopenTest.stopRunThread()
+//        mqtt1m.runff = false
+//        mqtt1m.disconnectmqtt()
         MqttManager.getInstance().close()
 
         if (connected) {
