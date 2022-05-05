@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorAccent">#03DAC5</color>
+
+
+    <color name="colorReceiveText">#00FF00</color>
+    <color name="colorRedText">#FF0000</color>
+    <color name="colorSendText">#82CAFF</color>
+    <color name="colorStatusText">#FFDB58</color>
+
+    <color name="colorVerbose">#BBBBBB</color>
+    <color name="colorDebug">#0070BB</color>
+    <color name="colorInfo">#48BB31</color>
+    <color name="colorWarn">#BBBB23</color>
+    <color name="colorError">#FF0006</color>
+    <color name="colorAssert">#8F0005</color>
+</resources>

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity"
+    tools:ignore="HardcodedText">
+
+    <LinearLayout
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="10dp"
+            android:layout_height="0dp"/>
+
+        <EditText
+            android:id="@+id/deviceIdEdit"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:inputType="text|textNoSuggestions"
+            android:singleLine="true"
+            android:text="设备id              "/>
+
+        <View
+            android:layout_width="10dp"
+            android:layout_height="0dp"/>
+
+        <Button
+            android:id="@+id/saveDeviceIdBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:visibility="gone"
+            android:text="保存ID"
+            android:textSize="14sp"/>
+
+        <Button
+            android:id="@+id/clearTestBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="清空不可买"/>
+
+        <View
+            android:layout_width="10dp"
+            android:layout_height="0dp"/>
+
+        <Button
+            android:id="@+id/saveSuccessBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="设置可加热"/>
+
+        <View
+            android:layout_width="10dp"
+            android:layout_height="0dp"/>
+
+        <Button
+            android:id="@+id/fillUpBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="加满可买"/>
+
+        <View
+            android:layout_width="10dp"
+            android:layout_height="0dp"/>
+
+        <Button
+            android:id="@+id/stateBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="状态"/>
+
+        <View
+            android:layout_width="10dp"
+            android:layout_height="0dp"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"/>
+
+    <TextView
+        android:id="@+id/receiveText"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:freezesText="true"
+        android:gravity="bottom"
+        android:scrollbars="vertical"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:typeface="monospace"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"/>
+
+    <LinearLayout
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/sendEdit"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@null"
+            android:inputType="text|textNoSuggestions"
+            android:singleLine="true"
+            android:text="1"/>
+
+        <Spinner
+            android:id="@+id/spinnerServer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/array_server"/>
+
+        <Spinner
+            android:id="@+id/spinnerIndex"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/array_index"/>
+
+        <Spinner
+            android:id="@+id/spinnerSubIndex"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/array_sub_index"/>
+
+        <Spinner
+            android:id="@+id/spinnerByteArrayLength"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/array_byte_length"/>
+
+
+        <ImageButton
+            android:id="@+id/sendBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/ic_send"/>
+
+        <ImageButton
+            android:id="@+id/readBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/ic_read"/>
+
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <Spinner
+            android:id="@+id/spinnerChannel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/array_channel"/>
+
+        <Spinner
+            android:id="@+id/spinnerStep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/array_step"/>
+
+        <Button
+            android:id="@+id/startRunStepBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:text="开始控制"/>
+
+        <Button
+            android:id="@+id/stopRunStepBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:text="停止控制"/>
+
+        <Button
+            android:id="@+id/pauseStopRunBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:text="暂停"/>
+
+        <Button
+            android:id="@+id/singleStepDebuggingBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="单步调试"/>
+
+    </LinearLayout>
+
+</LinearLayout>
