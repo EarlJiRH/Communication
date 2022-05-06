@@ -1,6 +1,6 @@
 package com.zhs.communication.controller.foodcartmqtt
 
-import com.zhs.communication.controller.time
+import com.zhs.communication.utils.getCurrentMillis
 
 class EnumDefine_1() {
     //companion object {
@@ -221,7 +221,7 @@ class ParamsDefine {
 
 
 
-    var mqtt_message_id = (time.time())
+    var mqtt_message_id = (getCurrentMillis())
 
 
     val MY_DEV_version="v0.1"   //版本号

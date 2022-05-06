@@ -1,8 +1,7 @@
 package com.zhs.communication.controller.foodcartmqtt
 
 import com.zhs.communication.controller.meals.updatezhizupliucheng_u
-import com.zhs.communication.controller.time
-import java.lang.Exception
+import com.zhs.communication.utils.threadSleep
 
 class FoodCarMqtt: MqttClient() {
     var runff = true
@@ -214,16 +213,16 @@ class FoodCarMqtt: MqttClient() {
             if (runff) {
                 //连接mqtt服务器
                 connect_server()
-                time.sleep(1000)
+                threadSleep(1000)
                 Create_time_JSON()
-//            time.sleep(1000)
+//            threadSleep(1000)
 //            check_data_adt_adt_sendjson(1, mutableListOf(1, 2, 1, 4))
 
                 while (runff) {
                     try {
 
                         runtimes += 1
-                        time.sleep(1000)
+                        threadSleep(1000)
 
                         oderstatehandle()//订单状态改变
 

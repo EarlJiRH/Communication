@@ -2,7 +2,7 @@ package com.zhs.communication.usbserial.example.canopen.sdo
 
 class SdoAbortedError constructor(var errorCode:Int){
 
-    private val errorCodeMap = mapOf<Int,String > (
+    private val errorCodeMap = mapOf<Int,String> (
         0x05030000 to "SDO toggle bit error",
         0x05040000 to "Timeout of transfer communication detected",
         0x05040001 to "Unknown SDO command specified",

@@ -1,8 +1,8 @@
 package com.zhs.communication.usbserial.example
 
 import com.blankj.utilcode.util.LogUtils
-import com.zhs.communication.usbserial.example.canopen.sdo.SdoClient
-import com.zhs.communication.usbserial.example.canopen.sdo.SdoServer
+import com.zhs.communication.usbserial.example.canopen.sdo.client.SdoClient
+import com.zhs.communication.usbserial.example.canopen.sdo.server.SdoServer
 import com.zhs.communication.utils.toHexStr
 
 class Network : UsbCanSerial() {
@@ -11,29 +11,28 @@ class Network : UsbCanSerial() {
         private const val TAG = "Network"
     }
 
-    private var subscribers = mutableMapOf<Int, SdoClient>()
-    private var subscribers_serv = mutableMapOf<Int, SdoServer>()
+    private var subscriberClients = mutableMapOf<Int, SdoClient>()
+    private var subscriberServers = mutableMapOf<Int, SdoServer>()
 
 
-    fun addsubscriber(sdocli: SdoClient) {
-        subscribers[sdocli.tx_cobidmy] = sdocli
+    fun addSubscriberClient(sdoClient: SdoClient) {
+        subscriberClients[sdoClient.respond] = sdoClient
     }
 
-    fun getsubscriberclicli(tx_cobidmy: Int): SdoClient? {
-
-        return subscribers[tx_cobidmy]!!
+    fun getSubscriberClient(respond: Int): SdoClient? {
+        return subscriberClients[respond]!!
     }
 
-    fun addsubscriberserver(sdoserv: SdoServer) {
-        subscribers_serv[sdoserv.tx_cobidmy] = sdoserv
+    fun addSubscriberServer(sdoServer: SdoServer) {
+        subscriberServers[sdoServer.respond] = sdoServer
     }
 
-    override fun canData2handler(
-        cankou: Int,
-        candatatype: Int,
-        canid: Int,
-        candatalen: Int,
-        candata: ByteArray
+    override fun canData2handle(
+        canPort: Int,
+        canDataType: Int,
+        canId: Int,
+        canDataLength: Int,
+        canData: ByteArray
     ) {
 //        if (candatalen==1) {
 //            System.out.print(
@@ -45,28 +44,37 @@ class Network : UsbCanSerial() {
 //            }
 //            System.out.println("]")
 //        }
-
-        if (subscribers.isNotEmpty()) {
-            for (sub in subscribers) {
-                if (canid == sub.value.tx_cobidmy) {
-                    sub.value.addResponse(canid, candata)
-                }
+        subscriberClients.forEach { clientMap ->
+            if (canId ==clientMap.value.respond){
+                clientMap.value.addResponse(canId, canData)
             }
         }
 
-        if (subscribers_serv.isNotEmpty()) {
-            for (sub in subscribers_serv) {
-                if (canid == sub.value.tx_cobidmy) {
-                    sub.value.onRequest(canid, candata)
-                }
+//        if (subscriberClients.isNotEmpty()) {
+//            for (sub in subscriberClients) {
+//                if (canid == sub.value.respond) {
+//                    sub.value.addResponse(canid, candata)
+//                }
+//            }
+//        }
+//
+//        if (subscriberServers.isNotEmpty()) {
+//            for (sub in subscriberServers) {
+//                if (canid == sub.value.respond) {
+//                    sub.value.onRequest(canid, candata)
+//                }
+//            }
+//        }
+        subscriberServers.forEach { serverMap ->
+            if (canId ==serverMap.value.respond){
+                serverMap.value.onRequest(canId, canData)
             }
         }
-
     }
 
-    fun sendMessage(canId: Int, data: ByteArray, userMainThread: Boolean = false){
+    fun sendMessage(canId: Int, data: ByteArray, userMainThread: Boolean = false) {
         LogUtils.e(TAG, "sendMessage 发送数据 serial ${toHexStr(data)}")
-        SendDate2Can(canId = canId, canData = data, userMainThread = userMainThread)
+        sendDate2Can(canId = canId, canData = data, userMainThread = userMainThread)
     }
 
 

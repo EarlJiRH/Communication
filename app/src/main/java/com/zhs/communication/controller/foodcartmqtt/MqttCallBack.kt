@@ -1,8 +1,7 @@
 package com.zhs.communication.controller.foodcartmqtt
 
 import com.example.myapplication.control_my.common.JsonUtil
-import com.zhs.communication.controller.time
-import java.lang.Exception
+import com.zhs.communication.utils.getCurrentMillis
 
 open class MqttCallBack {
 
@@ -81,7 +80,7 @@ open class MqttCallBack {
         ////        if  pubtopicdef is not None :
         //
         ////         pubtopicdef( params.pubtopiclist[numtopic], data)
-        ////         params.mqtt_message_id = int(time.time() * 1000)
+        ////         params.mqtt_message_id = int(getCurrentMillis() * 1000)
 //        showlogl("===============mqtt pub =================\r\ntopic=${params.pubtopiclist[numtopic]}\r\n" +
 //                "data=${data}\r\n")
         val fok = pub_topic(params.pubtopiclist[numtopic], data)
@@ -91,7 +90,7 @@ open class MqttCallBack {
         else{
             showlogl("发送失败")
         }
-        params.mqtt_message_id = time.time()
+        params.mqtt_message_id = getCurrentMillis()
 
 
     }
@@ -188,8 +187,7 @@ open class MqttCallBack {
     }
 
     private fun MQTT_CJSON_COMMOM_SUB(): String {
-        val t = time.time() - mqtt_time_localtime
-
+        val t = getCurrentMillis() - mqtt_time_localtime
         return addjsondataMyt(params.Dev_dt, t.toString(),adddouhao = false)
     }
 

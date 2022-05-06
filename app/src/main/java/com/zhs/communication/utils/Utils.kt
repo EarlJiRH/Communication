@@ -23,7 +23,7 @@ fun getRandomNumber(): Int {
     return Random().nextInt()
 }
 
-
+/**获取当前日期格式*/
 @SuppressLint("SimpleDateFormat")
 fun getCurrentDate(): String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
 
@@ -40,9 +40,10 @@ fun toHexStr(byteArray: ByteArray) =
         toString()
     }
 
-
+/**Byte转Int数据
+ *@param byte Byte数值
+ */
 fun byte2unit(byte: Byte): Int {
-
     var a: Int = byte.toInt()
     if (a < 0) {
         a = 256 - abs(a)
@@ -50,42 +51,56 @@ fun byte2unit(byte: Byte): Int {
     return a
 }
 
+/**[0,256]的Int转换为Byte数据
+ * @param num 0-256的整数值
+ * */
 fun int2byte(num: Int): Byte {
     if (num > 256) {
         throw  InvalidParameterException("Invalid int2byte int '$num'")
     }
-
-    return if (num in 0..128) {
+    //0-127
+    return if (num in 0..127) {
         num.toByte()
     } else {
+        //128-256 翻转
         (num - 256).toByte()
     }
 }
 
-
-fun zeros(shapesize: Int, dtype: String = "int16"): IntArray {
-    return IntArray(shapesize)
+/**Byte数组打印成16进制数值的字符串格式
+ * @param tag 打印的tag标签
+ * @param data 需要打印的Byte数组
+ */
+fun printByteArray(tag: String?, data: ByteArray) {
+    print("$tag [")
+    data.forEach {
+        print("${it.toString(16)} ")
+    }
+    println("]")
 }
 
+/**创建一维数组*/
+fun zeros(arraySize: Int, dataType: String = "int16") = IntArray(arraySize)
+
+/**创建二位数组*/
+fun zeros(arraySize0: Int, arraySize1: Int, dataType: String = "int16"): Array<IntArray> {
+    return Array(arraySize0) { IntArray(arraySize1) }
+
+}
+
+/**创建三维数组*/
 fun zeros(
-    shapesize0: Int,
-    shapesize1: Int,
-    shapesize2: Int,
-    dtype: String = "int16"
+    arraySize0: Int,
+    arraySize1: Int,
+    arraySize2: Int,
+    dataType: String = "int16"
 ): Array<Array<IntArray>> {
-    return Array(shapesize0) { Array(shapesize1) { IntArray(shapesize2) } }
-}
-
-fun zeros(shapesize0: Int, shapesize1: Int, dtype: String = "int16"): Array<IntArray> {
-    return Array(shapesize0) { IntArray(shapesize1) }
+    return Array(arraySize0) { Array(arraySize1) { IntArray(arraySize2) } }
 }
 
 
-fun time(): Long {
-    //返回当前毫秒
-    return System.currentTimeMillis()
-}
+/**获取当前系统时间 毫秒数*/
+fun getCurrentMillis() = System.currentTimeMillis()
 
-fun sleep(sleepms:Long){
-    Thread.sleep(sleepms)
-}
+/**使线程沉睡一定的毫秒数*/
+fun threadSleep(sleepMillis: Long) = Thread.sleep(sleepMillis)

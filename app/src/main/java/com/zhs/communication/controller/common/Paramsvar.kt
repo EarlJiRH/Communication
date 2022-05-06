@@ -8,12 +8,12 @@ open class Paramsvar {
 
      */
     companion object {
+
         val canopennodeid: Int = 0x10 //节点id
 
         val to_bytes_big_little: String = "little" //数字转can发送字节 对齐方式   big 大段  little 小端
 
 //        val STATE_FREE:Int = 0   // 空闲状态
-
 
         // LOCAL SDO
         val LOCALSDO1_COB_ID_Client_TRANSMIT: Int = 0x666

@@ -1,6 +1,5 @@
 package com.zhs.communication.usbserial.example.canopen.sdo
 
-
 const val REQUEST_SEGMENT_DOWNLOAD = 0 shl 5
 const val REQUEST_DOWNLOAD = 1 shl 5
 const val REQUEST_UPLOAD = 2 shl 5

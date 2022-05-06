@@ -30,7 +30,7 @@ import com.zhs.communication.service.CanService
 import com.zhs.communication.utils.ToastUtils
 import com.zhs.communication.utils.getRandomNumber
 
-class MainActivity : BaseActivity(), View.OnClickListener  {
+class MainActivity : BaseActivity(), View.OnClickListener {
 
     companion object {
         private const val TAG = "MainActivity"
@@ -206,8 +206,9 @@ class MainActivity : BaseActivity(), View.OnClickListener  {
             }
         }
     }
-    private fun setMainStatusData(message: String) {
-        setMainStatusData(LogMessage(message))
+
+    private fun setMainStatusData(message: String, level: MessageLevel = MessageLevel.Debug) {
+        setMainStatusData(LogMessage(message, level))
     }
 
     private fun setMainStatusData(message: LogMessage) {

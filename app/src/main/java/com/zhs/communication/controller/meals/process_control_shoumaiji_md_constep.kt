@@ -1,7 +1,7 @@
 package com.zhs.communication.controller.meals
 
-import com.zhs.communication.controller.time
-import com.zhs.communication.controller.utilcontmy
+import com.zhs.communication.utils.getCurrentMillis
+import com.zhs.communication.utils.zeros
 
 open class process_control_shoumaiji_md_constep : process_control_shoumaiji_md_constep_var() {
 
@@ -40,18 +40,18 @@ open class process_control_shoumaiji_md_constep : process_control_shoumaiji_md_c
     val myorder_number3 = 10  //菜单控制参数
     val myorder_number = 2 //最大菜单数量，同时制作的数量
 
-    var myorder = utilcontmy.zeros(myorder_number1, myorder_number2, myorder_number3, dtype = "int")
+    var myorder = zeros(myorder_number1, myorder_number2, myorder_number3, dataType = "int")
     var myorderstep_string: Array<Array<Array<String>>> =
         Array(myorder_number1) { Array(myorder_number2) { arrayOf("") } }
 //    var myorder[0][0][1]= myorder_number1
 
     var myorder_id = 0  // 菜单id
-    var myorder_step = utilcontmy.zeros(2, 10, dtype = "int")  // 控制步骤
-    var myorder_step_saveth = utilcontmy.zeros(2 * 10, 10, dtype = "int")  // 控制步骤
+    var myorder_step = zeros(2, 10, dataType = "int")  // 控制步骤
+    var myorder_step_saveth = zeros(2 * 10, 10, dataType = "int")  // 控制步骤
     var run_th_cut = 0 // 当前是那个运行
-    var my_data = utilcontmy.zeros(10, dtype = "int")   // 单独变量组
-    var myorder_dealy = utilcontmy.zeros(myorder_number, dtype = "int")   // 延时计数
-    var myorder_set_dealy = utilcontmy.zeros(myorder_number, dtype = "int")   // 设置延时
+    var my_data = zeros(10, dataType = "int")   // 单独变量组
+    var myorder_dealy = zeros(myorder_number, dataType = "int")   // 延时计数
+    var myorder_set_dealy = zeros(myorder_number, dataType = "int")   // 设置延时
 
     var startruntime11: LongArray = LongArray(2) //整体运行的开始时间
     var startrunold1: Long = 0 //单个步骤运行的开始时间
@@ -171,10 +171,10 @@ open class process_control_shoumaiji_md_constep : process_control_shoumaiji_md_c
         MB_printf("控制完成 $run_th_cut")
 
         if (run_th_cut == 0) {
-            val allruntttime = time.time() - startruntime11[channel]
+            val allruntttime = getCurrentMillis() - startruntime11[channel]
             MB_printf("通道${channel} 控制完成---------------一共用时${allruntttime / 1000.0}秒  换算${allruntttime / 1000.0 / 60}分钟")
-            // startruntime11 = time.time()
-            // startrunold1 = time.time()
+            // startruntime11 = getCurrentMillis()
+            // startrunold1 = getCurrentMillis()
             //            if stateset_1steatdef is not None:
             //            stateset_1steatdef("%d通道%d控制完成"%(channel,channel+1))
             playAudio("控制完成")
@@ -212,7 +212,7 @@ open class process_control_shoumaiji_md_constep : process_control_shoumaiji_md_c
         // myorder_step[channel][2] = step2  ////菜单运行动作控制，保证一套动作按顺序完成
         // myorder_step[channel][9] = stepid  // 菜单id
         //print('------运行控制',myorder_step_saveth)
-        startruntime11[channel] = time.time()
+        startruntime11[channel] = getCurrentMillis()
         MB_printf("开始控制 $channel  stepid=${stepid}")
         //    if stateset_1steatdef is not None:
         //    stateset_1steatdef("%d通道%d 开始控制"%(channel,channel+1))
@@ -254,11 +254,11 @@ open class process_control_shoumaiji_md_constep : process_control_shoumaiji_md_c
 
 
         // if my_step1_get()==0:
-        //     startruntime11 = time.time()
-        //     startrunold1 = time.time()
+        //     startruntime11 = getCurrentMillis()
+        //     startrunold1 = getCurrentMillis()
         if (run_th_cut == 0) {
-            val runtime11 = time.time() - startrunold1
-            startrunold1 = time.time()
+            val runtime11 = getCurrentMillis() - startrunold1
+            startrunold1 = getCurrentMillis()
             MB_printf("--------步骤${my_step1_get()} 运行时间${runtime11 / 1000.0}")
             my_step1_set(my_step1_get() + 1, runtime11)
         } else {

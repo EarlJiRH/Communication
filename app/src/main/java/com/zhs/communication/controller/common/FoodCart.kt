@@ -3,9 +3,9 @@ package com.zhs.communication.controller.common
 import android.os.Environment
 import com.zhs.communication.usbserial.example.Network
 import com.zhs.communication.usbserial.example.SdoServerCallbackImpl
-import com.zhs.communication.usbserial.example.canopen.sdo.DataDot
-import com.zhs.communication.usbserial.example.canopen.sdo.SdoClient
-import com.zhs.communication.usbserial.example.canopen.sdo.SdoServer
+import com.zhs.communication.usbserial.example.canopen.sdo.client.SdoClient
+import com.zhs.communication.usbserial.example.canopen.sdo.server.DataDot
+import com.zhs.communication.usbserial.example.canopen.sdo.server.SdoServer
 import com.zhs.communication.utils.byte2unit
 import com.zhs.communication.utils.int2byte
 import java.io.File
@@ -58,7 +58,7 @@ open class FoodCart : Paramsvar() {
         for (cli in SDO_NODE_ID_OF_THE_SERVER_LIST) {
             if (cli == nodeidoftheserver) {
                 val fok = SDO_LIST_CLIENT_MAP[cli]?.second?.let {
-                    network.getsubscriberclicli(it)
+                    network.getSubscriberClient(it)
                         ?.download(index, subindex, data)
                 }
                 return fok == true
@@ -93,7 +93,7 @@ open class FoodCart : Paramsvar() {
 //                System.out.println("sdoreadindex=${cli.toString(16)}")
 
                 val datab = SDO_LIST_CLIENT_MAP[cli]?.second?.let {
-                    network.getsubscriberclicli(it)
+                    network.getSubscriberClient(it)
                         ?.upload(index, subindex)
                 }
                 if (datab != null) {
@@ -202,11 +202,11 @@ open class FoodCart : Paramsvar() {
 
     }
 
-    private fun addloclvarsdoserver_1(t: SdoServer) {
+    private fun addLocalSdoServer(t: SdoServer) {
         //测试添加变量
         val ttc = SdoServerCallbackImpl()
         val td = DataDot(index = 0x2010, subIndex = 1, dataSize = 1, data = 1, callback = ttc)
-        t.local_data.add(td)
+        t.localData.add(td)
     }
 
 
@@ -289,20 +289,32 @@ open class FoodCart : Paramsvar() {
 
         println("初始化  ${2}.")
         //初始化canopen cli
-        for (sdocli in SDO_LIST_CLIENT_MAP) {
-            val cli = SdoClient(sdocli.value.first, sdocli.value.second)
-            cli.network = network
-            network.addsubscriber(cli)
+
+        SDO_LIST_CLIENT_MAP.forEach { sdoClient->
+            val client= SdoClient(sdoClient.value.first,
+                sdoClient.value.second,
+                network)
+            network.addSubscriberClient(client)
         }
 
-        for (sdoser in SDO_LIST_SERVER_MAP) {
-            val ser = SdoServer(sdoser.value.first, sdoser.value.second)
-            ser.networkmy = network
-            network.addsubscriberserver(ser)
-            addloclvarsdoserver_1(ser)
+//        for (sdocli in SDO_LIST_CLIENT_MAP) {
+//            val cli = SdoClient(sdocli.value.first, sdocli.value.second, network)
+////            cli.network = network
+//            network.addsubscriber(cli)
+//        }
+        SDO_LIST_SERVER_MAP.forEach { sdoServer->
+            val server= SdoServer(sdoServer.value.first,
+                sdoServer.value.second,
+                network)
+            network.addSubscriberServer(server)
+
         }
-
-
+//        for (sdoser in SDO_LIST_SERVER_MAP) {
+//            val ser = SdoServer(sdoser.value.first, sdoser.value.second)
+//            ser.network = network
+//            network.addSubscriberServer(ser)
+//            addLocalSdoServer(ser)
+//        }
     }
 
 }

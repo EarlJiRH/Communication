@@ -1,6 +1,7 @@
 package com.zhs.communication.controller.meals
 
-import com.zhs.communication.controller.time
+import com.zhs.communication.utils.getCurrentMillis
+import com.zhs.communication.utils.threadSleep
 
 open class process_control_md_constep_steprun2 : process_control_md_constep_steprun() {
 
@@ -9,8 +10,8 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
 
     fun shoumaibaozi(num: Int): Boolean {
 
-        if ((time.time() - shoumaibaoziprintoldtime) > 5000) {
-            shoumaibaoziprintoldtime = time.time()
+        if ((getCurrentMillis() - shoumaibaoziprintoldtime) > 5000) {
+            shoumaibaoziprintoldtime = getCurrentMillis()
             MB_printf("baozistatemail_maistepstep=${baozistatemail_maistepstep}")
             MB_printf("baozistatemail_maistepstep_ll[0]=${baozistatemail_maistepstep_ll[0]}")
             MB_printf("baozistatemail_maistepstep_ll[1]=${baozistatemail_maistepstep_ll[1]}")
@@ -21,11 +22,11 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
 
             if ((1 < baozistatemail_maistepstep) and (20 >= baozistatemail_maistepstep) and (baozistatemail_maistepstep_settimeoutkaimentimenum < 15)) {
                 //开加热室落包子的门
-                if ((time.time() - baozistatemail_maistepstep_settimeoutkaimentime) > 2100) {
+                if ((getCurrentMillis() - baozistatemail_maistepstep_settimeoutkaimentime) > 2100) {
 
                     fok = baozijimotormyconset(0, 6, 1, 2, 1000)
                     if (fok) {
-                        baozistatemail_maistepstep_settimeoutkaimentime = time.time()
+                        baozistatemail_maistepstep_settimeoutkaimentime = getCurrentMillis()
                         baozistatemail_maistepstep_settimeoutkaimentimenum += 1
                         MB_printf("加热室开门次数 $baozistatemail_maistepstep_settimeoutkaimentimenum")
                     }
@@ -33,11 +34,11 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
             }
 
             if ((29 < baozistatemail_maistepstep) and (baozistatemail_maistepstep < 48) and (baozistatemail_maistepstep_settimeoutkaimentimenum_guan < 15)) {
-                if ((time.time() - baozistatemail_maistepstep_settimeoutkaimentime_guan) > 2100) {
+                if ((getCurrentMillis() - baozistatemail_maistepstep_settimeoutkaimentime_guan) > 2100) {
 
                     fok = baozijimotormyconset(0, 6, 1, 1, 1000)
                     if (fok) {
-                        baozistatemail_maistepstep_settimeoutkaimentime_guan = time.time()
+                        baozistatemail_maistepstep_settimeoutkaimentime_guan = getCurrentMillis()
                         baozistatemail_maistepstep_settimeoutkaimentimenum_guan += 1
                         MB_printf("加热室关门次数 $baozistatemail_maistepstep_settimeoutkaimentimenum_guan")
                     }
@@ -79,7 +80,7 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
                 fok = baozijimotormyconset(0, 6, 1, 2, 1000)
                 if (fok) {
                     shoumaibaozistepadd()
-                    baozistatemail_maistepstep_settimeoutkaimentime = time.time()
+                    baozistatemail_maistepstep_settimeoutkaimentime = getCurrentMillis()
                 }
             } else if (2 == baozistatemail_maistepstep) {  // 判断 纸袋是否在准备
                 if (baozistatemail_maistepstep_ll[0] == 0) {
@@ -183,7 +184,7 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
                 MB_printf("推包子电机正转转10秒归位 位置${baozistatemail_cengtuiganweizhi + 1}")
                 fok = baozijimotormyconset(0, baozistatemail_cengtuiganweizhi + 1, 1, 2, 15000)
                 if (fok) {
-                    baozistatemail_tuiganhuiqutimetim = time.time()
+                    baozistatemail_tuiganhuiqutimetim = getCurrentMillis()
                     shoumaibaozistepadd()
 
                     baozistatemail_ceng_fxiaiyiceng = 0  // 要不要在结束时再错开下一层
@@ -274,10 +275,10 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
                     // if baozistatemail_ceng_fxiaiyiceng==1){
                     //     baozistatemail_maistepstep = 45   // 跳转到45
                     playAudio("请尽快取餐")
-                    baozistatemail_maistepstep_settimeout = time.time()
+                    baozistatemail_maistepstep_settimeout = getCurrentMillis()
                 }
             } else if (40 == baozistatemail_maistepstep) {//   判断延时是否到了 延时10 s
-                val cutt = time.time()
+                val cutt = getCurrentMillis()
                 if (cutt - baozistatemail_maistepstep_settimeout > 10000) {
                     // shoumaibaozistepadd()
                     playAudio("请尽快取餐")
@@ -395,15 +396,15 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
             fok = baozijimotormyconset(2, 1, 4, 0, 0)
             if (fok) {
                 shoumaibaozistepadd_stepll(0)
-                baozistatexiaobujindabaoguilingtguilintime = time.time()
+                baozistatexiaobujindabaoguilingtguilintime = getCurrentMillis()
             }
         } else if (5 == baozistatemail_maistepstep_ll[0]) {  // 打包板 大步进电机 是否工作完成
             fok = ifworkbaozijimotormyconset(2, 0)
             if (fok) {
                 shoumaibaozistepadd_stepll(0)
-                baozistatexiaobujindabaoguilingtguilintime = time.time()
+                baozistatexiaobujindabaoguilingtguilintime = getCurrentMillis()
             } else {
-                if (time.time() - baozistatexiaobujindabaoguilingtguilintime > 20 * 1000) {
+                if (getCurrentMillis() - baozistatexiaobujindabaoguilingtguilintime > 20 * 1000) {
                     baozistatemail_maistepstep_ll[0] = 4
                     MB_printf("小步进电机打包板  归零超时")
 //                    play_audio("小步进归零超时1")
@@ -414,7 +415,7 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
             if (fok) {
                 shoumaibaozistepadd_stepll(0)
             } else {
-                if (time.time() - baozistatexiaobujindabaoguilingtguilintime > 20 * 1000) {
+                if (getCurrentMillis() - baozistatexiaobujindabaoguilingtguilintime > 20 * 1000) {
                     baozistatemail_maistepstep_ll[0] = 4
                     MB_printf("小步进电机打包板  归零超时")
                     //mqttt.play_audio('小步进归零超时1111')
@@ -457,16 +458,16 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
             fok = baozijimotormyconset(2, 1, 4, 0, 0)
             if (fok) {
 //                play_audio("小步进归零成功")
-                time.sleep(1000)
+                threadSleep(1000)
                 baozistatemail_maistepstep_ll[0] = 142
-                baozistatexiaobujindabaoguilingtguilintime = time.time()
+                baozistatexiaobujindabaoguilingtguilintime = getCurrentMillis()
             }
         } else if (142 == baozistatemail_maistepstep_ll[0]) {  // 打包板 小步进电机 是否工作完成
             fok = ifworkbaozijimotormyconset(2, 1)
             if (fok) {
                 baozistatemail_maistepstep_ll[0] = 14
             } else {
-                if (time.time() - baozistatexiaobujindabaoguilingtguilintime > 20000) {
+                if (getCurrentMillis() - baozistatexiaobujindabaoguilingtguilintime > 20000) {
                     baozistatemail_maistepstep_ll[0] = 141
                     MB_printf("小步进电机打包板  归零超时 14.2")
                     //mqttt.play_audio('小步进归零超时2')
@@ -477,15 +478,15 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
             fok = baozijimotormyconset(2, 1, 2, 1, 9)
             if (fok) {
                 shoumaibaozistepadd_stepll(0)
-                baozistatexiaobujindabaoguilingtguilintime = time.time()
-                baozistatemail_maistepstep_dbshoumaidianjixiaobujinguiweipanduan = time.time()
+                baozistatexiaobujindabaoguilingtguilintime = getCurrentMillis()
+                baozistatemail_maistepstep_dbshoumaidianjixiaobujinguiweipanduan = getCurrentMillis()
             }
         } else if (15 == baozistatemail_maistepstep_ll[0]) {  // 打包板 小步进电机 是否工作完成
             fok = ifworkbaozijimotormyconset(2, 1)
             if (fok) {
                 shoumaibaozistepadd_stepll(0)
             } else {
-                if (time.time() - baozistatexiaobujindabaoguilingtguilintime > 20000) {
+                if (getCurrentMillis() - baozistatexiaobujindabaoguilingtguilintime > 20000) {
                     baozistatemail_maistepstep_ll[0] = 141
                     MB_printf("小步进电机打包板  归零超时 15")
                     //mqttt.play_audio('小步进归零超时2 15')
@@ -500,14 +501,14 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
             fok = baozijimotormyconset(2, 1, 2, 2, 25)
             if (fok) {
                 shoumaibaozistepadd_stepll(0)
-                baozistatexiaobujindabaoguilingtguilintime = time.time()
+                baozistatexiaobujindabaoguilingtguilintime = getCurrentMillis()
             }
         } else if (18 == baozistatemail_maistepstep_ll[0]) {  // 打包板 小步进电机 是否工作完成
             fok = ifworkbaozijimotormyconset(2, 1)
             if (fok) {
                 shoumaibaozistepadd_stepll(0)
             } else {
-                if (time.time() - baozistatexiaobujindabaoguilingtguilintime > 20000) {
+                if (getCurrentMillis() - baozistatexiaobujindabaoguilingtguilintime > 20000) {
                     baozistatemail_maistepstep_ll[0] = 141
                     MB_printf("小步进电机打包板  归零超时 18")
                     //mqttt.play_audio('小步进归零超时2 18')
@@ -530,7 +531,7 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
                         //mqttt.play_audio('小步进运动错误尝试归零')
                         baozistatexiaobujindabaoguilingt = 0
                         fok = baozijimotormyconset(2, 4, 2, 1, 0) // 关闭真空泵
-                        if (time.time() - baozistatemail_maistepstep_dbshoumaidianjixiaobujinguiweipanduan < 3000) {
+                        if (getCurrentMillis() - baozistatemail_maistepstep_dbshoumaidianjixiaobujinguiweipanduan < 3000) {
                             fok = baozijimotormyconset(2, 1, 4, 0, 0) //小步进电机归零
                         } else {
                             MB_printf("打包板小步进不需要归零")
@@ -549,7 +550,7 @@ open class process_control_md_constep_steprun2 : process_control_md_constep_step
         } else if (1 == baozistatemail_maistepstep_ll[1]) { // 加热板 推包子是否完成
 
             //MB_printf("判断 这个推杆是否收回成功 ${baozistatemail_cengtuiganweizhi + 1}")
-            if ((time.time() - baozistatemail_tuiganhuiqutimetim) > 10000) {
+            if ((getCurrentMillis() - baozistatemail_tuiganhuiqutimetim) > 10000) {
                 var fok = ifworkbaozijimotormyconset(
                     0,
                     baozistatemail_cengtuiganweizhi + 1

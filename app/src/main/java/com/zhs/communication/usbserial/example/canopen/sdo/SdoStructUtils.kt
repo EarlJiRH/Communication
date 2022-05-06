@@ -5,44 +5,30 @@ import com.zhs.communication.utils.int2byte
 
 object SdoStructUtils {
 
-    fun pack_into(
-        request: ByteArray,
-        startindex: Int = 0,
+    fun pack(
+        request: ByteArray = ByteArray(4),
+        startIndex: Int = 0,
         command: Int,
         index: Int,
-        subindex: Int
+        subIndex: Int
     ): ByteArray {
-
-        request[startindex] = int2byte(command)
-        request[startindex + 1] = int2byte(index and 0xff)
-        request[startindex + 2] = int2byte((index and 0xff00) shr 8)
-        request[startindex + 3] = int2byte(subindex)
-
+        request[startIndex] = int2byte(command)
+        request[startIndex + 1] = int2byte(index and 0xff)
+        request[startIndex + 2] = int2byte((index and 0xff00) shr 8)//右移8位 缩小
+        request[startIndex + 3] = int2byte(subIndex)
         return request
     }
 
-    fun unpack_from_cmd(response: ByteArray): Int {
+    fun unpackFromCommand(response: ByteArray): Int {
         return byte2unit(response[0])//.toInt()
     }
 
-    fun unpack_from_index(response: ByteArray): Int {
+    fun unpackFromIndex(response: ByteArray): Int {
         return byte2unit(response[1]) or (byte2unit(response[2]) shl 8)
     }
 
-    fun unpack_from_subindex(response: ByteArray): Int {
+    fun unpackFromSuIndex(response: ByteArray): Int {
         return byte2unit(response[3])//.toInt()
-    }
-
-
-
-    fun pack(command: Int, index: Int, subindex: Int): ByteArray {
-        val request = ByteArray(4)
-        request[0] = int2byte(command)
-        request[1] = int2byte(index and 0xff)
-        request[2] = int2byte((index and 0xff00) shr 8)//右移 缩小
-        request[3] = int2byte(subindex)
-
-        return request
     }
 
     fun getExceptCode(data: ByteArray): Int {

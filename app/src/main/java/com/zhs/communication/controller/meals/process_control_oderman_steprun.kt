@@ -1,8 +1,9 @@
 package com.zhs.communication.controller.meals
 
 import com.blankj.utilcode.util.LogUtils
-import com.zhs.communication.controller.time
 import com.zhs.communication.usbserial.example.SdoServerCallbackImpl
+import com.zhs.communication.utils.getCurrentMillis
+import com.zhs.communication.utils.threadSleep
 
 open class process_control_oderman_steprun : process_control_md_constep_steprun2() {
 
@@ -28,7 +29,7 @@ open class process_control_oderman_steprun : process_control_md_constep_steprun2
         LogUtils.e(TAG, "startRunOderMain: res=${rest}")
 
         while (ordermianrunf) {
-            time.sleep(100)//100ms
+            threadSleep(100)//100ms
             if (!ordermianrun_suspend_f) {
                 order_main(1)
                 order_main(1, run_th = 1)
@@ -99,8 +100,8 @@ open class process_control_oderman_steprun : process_control_md_constep_steprun2
     }
 
     fun printshowallrunlog(showstr: String) {
-        if ((time.time() - oldprinttimeshow) > 5000) {
-            oldprinttimeshow = time.time()
+        if ((getCurrentMillis() - oldprinttimeshow) > 5000) {
+            oldprinttimeshow = getCurrentMillis()
             MB_printf(showstr)
         }
 
@@ -184,8 +185,8 @@ open class process_control_oderman_steprun : process_control_md_constep_steprun2
                         }
 
 
-                        if (time.time() - printftimeold > 2000) {
-                            printftimeold = time.time()
+                        if (getCurrentMillis() - printftimeold > 2000) {
+                            printftimeold = getCurrentMillis()
                             MB_printf(
                                 "通道${channel}   时间${myorder_dealy[channel]} 判读时间${
                                     myorder_data3_get(
@@ -208,8 +209,8 @@ open class process_control_oderman_steprun : process_control_md_constep_steprun2
                             myorder_step_add()
                             MB_printf("包子运输完成可以加热")
                         } else {
-                            if (time.time() - printftimeold1 > 3000) {
-                                printftimeold1 = time.time()
+                            if (getCurrentMillis() - printftimeold1 > 3000) {
+                                printftimeold1 = getCurrentMillis()
                                 MB_printf("包子还没有运输完成不能加热")
                             }
                         }

@@ -1,51 +1,43 @@
-package com.zhs.communication.usbserial.example.canopen.sdo
+package com.zhs.communication.usbserial.example.canopen.sdo.server
 
 import com.blankj.utilcode.util.LogUtils
 import com.zhs.communication.usbserial.example.Network
+import com.zhs.communication.usbserial.example.canopen.sdo.*
 import com.zhs.communication.utils.byte2unit
 import com.zhs.communication.utils.int2byte
 import com.zhs.communication.utils.toHexStr
-
-
-open class SdoServerCallback {
-
-    open fun setData(dataDot: DataDot) {
-        println(
-            "set data index=${dataDot.index}" +
-                    " subIndex=${dataDot.subIndex}" +
-                    "dataSize=${dataDot.dataSize}" +
-                    "data=${dataDot.data}"
-        )
-    }
-}
-
 
 /**
  * @param receive 接收的参数(rx)
  * @param respond 响应的参数(tx)
  * */
-class SdoServer(respond: Int, receive: Int) {
+class SdoServer(
+    var respond: Int,
+    var receive: Int,
+    var network: Network? = null
+) {
 
     companion object {
         private const val TAG = "sdoServer"
     }
 
 
-    var rx_cobidmy: Int = 0
-    var tx_cobidmy: Int = 0
-    var networkmy: Network? = null
+//    var rx_cobidmy: Int = 0
+//    var tx_cobidmy: Int = 0
+
+//    var networkmy: Network? = null
 
     var _index = 0
     var _subindex = 0
 
-    init {
-        rx_cobidmy = receive
-        tx_cobidmy = respond
-    }
+//    init {
+//        rx_cobidmy = receive
+//        tx_cobidmy = respond
+//    }
 
-    var local_data: MutableList<DataDot> = mutableListOf()
+    var localData: MutableList<DataDot> = mutableListOf()
 
-    fun onRequest(can_id: Int, data: ByteArray, timestamp: Float = 0.0F) {
+    fun onRequest(canId: Int, data: ByteArray, timestamp: Float = 0.0F) {
 
 //        System.out.println("rx server on requrest ")
         try {
@@ -82,9 +74,9 @@ class SdoServer(respond: Int, receive: Int) {
     private fun init_download(data: ByteArray) {
 //        # TODO: Check if writable (now would fail on end of segmented downloads)
 
-        var command: Int = SdoStructUtils.unpack_from_cmd(data)
-        var res_index = SdoStructUtils.unpack_from_index(data)
-        var res_subindex = SdoStructUtils.unpack_from_subindex(data)
+        var command: Int = SdoStructUtils.unpackFromCommand(data)
+        var res_index = SdoStructUtils.unpackFromIndex(data)
+        var res_subindex = SdoStructUtils.unpackFromSuIndex(data)
 
 
         _index = res_index
@@ -108,7 +100,7 @@ class SdoServer(respond: Int, receive: Int) {
                 abort(0x08000024)
                 return
             }
-            SdoStructUtils.pack_into(response, 0, res_command, res_index, res_subindex)
+            SdoStructUtils.pack(response, 0, res_command, res_index, res_subindex)
             sendResponse(response)
             return
 
@@ -122,8 +114,8 @@ class SdoServer(respond: Int, receive: Int) {
     private fun init_upload(data: ByteArray) {
 
 //        var res_command = SdoStructUtils.unpack_from_cmd(data)
-        val res_index = SdoStructUtils.unpack_from_index(data)
-        val res_subindex = SdoStructUtils.unpack_from_subindex(data)
+        val res_index = SdoStructUtils.unpackFromIndex(data)
+        val res_subindex = SdoStructUtils.unpackFromSuIndex(data)
 
 
         _index = res_index
@@ -166,7 +158,7 @@ class SdoServer(respond: Int, receive: Int) {
 
 
             }
-            SdoStructUtils.pack_into(response, 0, res_command, res_index, res_subindex)
+            SdoStructUtils.pack(response, 0, res_command, res_index, res_subindex)
             sendResponse(response)
             return
         }
@@ -176,7 +168,7 @@ class SdoServer(respond: Int, receive: Int) {
     }
 
     private fun getData(resIndex: Int, resSubindex: Int): DataDot? {
-        for (ii in local_data) {
+        for (ii in localData) {
             if ((ii.index == resIndex) and (ii.subIndex == resSubindex)) {
                 return ii
             }
@@ -185,7 +177,7 @@ class SdoServer(respond: Int, receive: Int) {
     }
 
     private fun setData(resIndex: Int, resSubindex: Int, bytes: ByteArray): Boolean {
-        for (ii in local_data) {
+        for (ii in localData) {
             if ((ii.index == resIndex) and (ii.subIndex == resSubindex)) {
                 if (ii.dataSize == bytes.size) {
                     when (ii.dataSize) {
@@ -245,16 +237,7 @@ class SdoServer(respond: Int, receive: Int) {
     private fun sendResponse(data: ByteArray) {
         LogUtils.e(TAG, "sendMessage 发送数据 serial ${toHexStr(data)}")
         //这里会报错
-        networkmy?.sendMessage(rx_cobidmy, data, userMainThread = true)
+        network?.sendMessage(receive, data, userMainThread = true)
     }
 
 }
-
-
-data class DataDot(
-    var index: Int,
-    var subIndex: Int,
-    var dataSize: Int,
-    var data: Int,
-    var callback: SdoServerCallback? = SdoServerCallback()
-)

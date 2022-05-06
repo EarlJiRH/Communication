@@ -1,6 +1,6 @@
 package com.zhs.communication.controller.meals
 
-import com.zhs.communication.controller.time
+import com.zhs.communication.utils.getCurrentMillis
 
 open class process_control_md_constep_steprun : process_control_shoumaiji_md_constep(){
 
@@ -108,7 +108,7 @@ open class process_control_md_constep_steprun : process_control_shoumaiji_md_con
         //        :param params:  参数   时间获取位置的参数                    加热板才有  0 一直维持这个状态  大于0  就是以 0.1 s 乘上这个数让后断电
         //        :return:
         //        """
-        var cuttime = time.time()
+        var cuttime = getCurrentMillis()
         if (cuttime-banzishoumaiwritemotoroldtime[banzi] >banzishoumaiwritemotoroldtime_cha ) {
             banzishoumaiwritemotoroldtime[banzi] = cuttime
             var canshu = arrayListOf<Int>(
@@ -152,8 +152,8 @@ open class process_control_md_constep_steprun : process_control_shoumaiji_md_con
 
 
                 if ((resr and 0xf0)>0) {
-                    if (time.time()-errmotorerrprinttime>2000) {
-                        errmotorerrprinttime = time.time()
+                    if (getCurrentMillis()-errmotorerrprinttime>2000) {
+                        errmotorerrprinttime = getCurrentMillis()
                         MB_printf(
                             "$banzihao  电机运动错误 ${banzishoumaisdoindex[banzihao].toString(16)} " +
                                     "errcode=${resr.toString(16)}  " +

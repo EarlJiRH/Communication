@@ -1,27 +1,35 @@
 package com.zhs.communication.usbserial.example
 
+import android.util.Log
+import com.blankj.utilcode.util.GsonUtils
 import com.blankj.utilcode.util.LogUtils
-import com.zhs.communication.eventbus.*
+import com.zhs.communication.eventbus.Event
+import com.zhs.communication.eventbus.EventBusUtil
+import com.zhs.communication.eventbus.EventCode
+import com.zhs.communication.eventbus.LogMessage
 import com.zhs.communication.utils.byte2unit
+import com.zhs.communication.utils.printByteArray
 import com.zhs.communication.utils.toHexStr
-import java.text.SimpleDateFormat
-import java.util.*
 
 open class UsbCanSerial {
 
     companion object {
         const val TAG = "UsbCanSerial"
+        const val MaxDataLen: Int = 32
     }
 
-    private var MaxDataLen: Int = 32
 
-    var rxcandatanum: Int = 0
+    var canDataNum: Int = 0
+
     private var dataBuff: ByteArray = ByteArray(0)
-    private var databuffall: ByteArray = ByteArray(0)
-    private var usbcansenddatesate = 0 //未知 7   失败5  成功  0  状态改变才会发给上位机   can通信时要
+    private var dataBuffAll: ByteArray = ByteArray(0)
+
+    //未知 7   失败5  成功  0  状态改变才会发给上位机   can通信时要
+    private var usbCanSendDateState = 0
     // 注意每条指令都是21字节，不足补齐就行了
 
-    var mListener: SendCanListener? = null
+    //CAN数据发送情况的监听
+    var mSendCanListener: SendCanListener? = null
 
 
     fun checkCommandData(data: ByteArray, indexHead: Int): Int {
@@ -32,30 +40,36 @@ open class UsbCanSerial {
         return sum and 0xff
     }
 
-    fun getCurrentDate(): String {
-        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
-        return sdf.format(Date())
-    }
-
-    open fun canData2handler(
-        cankou: Int,
-        candatatype: Int,
-        canid: Int,
-        candatalen: Int,
-        candata: ByteArray
+    /**
+     * @param canPort CAN口
+     * @param canDataType CAN数据类型
+     * @param canId CANId
+     * @param canDataLength CAN数据长度
+     * @param canData CAN数据*/
+    open fun canData2handle(
+        canPort: Int,
+        canDataType: Int,
+        canId: Int,
+        canDataLength: Int,
+        canData: ByteArray
     ) {
-
-
+        //TODO 这里要子类去实现处理将底盘数据进行回传
     }
 
 
-    fun rxcandata(cankou: Int, candatatype: Int, canid: Int, candatalen: Int, candata: ByteArray) {
+    fun sendCanData(
+        canPort: Int,
+        canDataType: Int,
+        canId: Int,
+        canDataLength: Int,
+        canData: ByteArray
+    ) {
         /*
         * 接收到数据 can
         *
         *
         * */
-        rxcandatanum += 1
+        canDataNum += 1
 
 //        System.out.print("${rxcandatanum}  ${getCurrentDate()} 接收到数据 CAN${cankou} 类型 ${candatatype} id=${canid.toString(16)} len=${candatalen} data=[")
 //        for(i in candata){
@@ -63,7 +77,7 @@ open class UsbCanSerial {
 //        }
 //        System.out.println("]")
 
-        canData2handler(cankou, candatatype, canid, candatalen, candata)
+        canData2handle(canPort, canDataType, canId, canDataLength, canData)
     }
 
 
@@ -75,7 +89,7 @@ open class UsbCanSerial {
         candata[3] = 0x02
         candata[4] = 0x32
         candata[5] = 0x34
-        mListener?.sendData2Serial(candata)
+        mSendCanListener?.sendData2Serial(candata)
     }
 
 
@@ -100,7 +114,7 @@ open class UsbCanSerial {
                     (byte2unit(data[9]) shl 8) +
                     (byte2unit(data[10]))
             candata = data.copyOfRange(12, 12 + candatalen)
-            rxcandata(cankou, candatatype, canid, candatalen, candata)
+            sendCanData(cankou, candatatype, canid, candatalen, candata)
 
         } else if (minglinwe == 0xb2) {
             //5.3 上位机向下位机查询CAN报文发送状态 0x32 0xB2
@@ -123,126 +137,141 @@ open class UsbCanSerial {
                 }
 
             }
-            usbcansenddatesate = staretcansendstae
+            usbCanSendDateState = staretcansendstae
         }
 
     }
 
-
+    /**通过串口发送CAN数据 实际调用子类的实现*/
     fun sendData2Serial(canData: ByteArray, userMainThread: Boolean = false) {
 //        System.out.print("这里要调用串口发送数据=[")
 //        for(i in candata){
 //            System.out.print("${byte2unit(i).toString(16)} ")
 //        }
 //        System.out.println("]")
+        val sendDataArray: ByteArray
         when (canData.size) {
             in 0..21 -> {
-                EventBusUtil.sendEvent(
-                    Event(
-                        EventCode.A,
-                        LogMessage("$TAG 发送数据 serial ${toHexStr(canData)}", MessageLevel.Info)
-                    )
-                )
-
+                //数据长度不足21位 空位补齐
+                sendDataArray = ByteArray(21)
+                for (index in canData.indices) {
+                    sendDataArray[index] = canData[index]
+                }
                 if (userMainThread) {
-                    mListener?.sendData2SerialMainThread(canData)
+                    mSendCanListener?.sendData2SerialMainThread(sendDataArray)
                 } else {
-                    mListener?.sendData2Serial(canData)
+                    mSendCanListener?.sendData2Serial(sendDataArray)
                 }
             }
 
             else -> {
-                val sendatatem: ByteArray = ByteArray(21)
-                for (i in canData.indices) {
-                    sendatatem[i] = canData[i]
-                }
-
-                EventBusUtil.sendEvent(
-                    Event(
-                        EventCode.A,
-                        LogMessage("$TAG 发送数据 serial ${toHexStr(sendatatem)}", MessageLevel.Info)
-                    )
-                )
-
+                sendDataArray = canData
                 if (userMainThread) {
-                    mListener?.sendData2SerialMainThread(sendatatem)
+                    mSendCanListener?.sendData2SerialMainThread(canData)
                 } else {
-                    mListener?.sendData2Serial(sendatatem)
+                    mSendCanListener?.sendData2Serial(canData)
                 }
             }
         }
+
+        EventBusUtil.sendEvent(
+            Event(
+                EventCode.A,
+                LogMessage(toHexStr(sendDataArray))
+            )
+        )
     }
 
-    fun SendDate2Can(
-        cankou: Int = 1,
+    fun sendDate2Can(
+        canPort: Int = 1,
         canDataType: Int = 3,
         canId: Int = 1271,
         canData: ByteArray,
         userMainThread: Boolean = false
     ): Boolean {
-        var fokstate: Boolean = false
-        var senddatalen: Int = canData.size
-        var sendatatem: ByteArray = ByteArray(senddatalen + 13)
+        var fokState: Boolean = false
+        val sendDataLength: Int = canData.size
+        val sendDataArray: ByteArray = ByteArray(sendDataLength + 13)
+        return when (sendDataLength) {
+            in 0..8 -> {//数据长度[0,8]
+                //起始
+                sendDataArray[0] = 0x66.toByte()
+                sendDataArray[1] = 0xcc.toByte()
 
-        if (senddatalen <= 8) {
+                //长度
+                sendDataArray[2] = 0x00.toByte()
+                sendDataArray[3] = (9 + sendDataLength).toByte()
 
-//            var sendatatem:ByteArray =ByteArray(senddatalen+13)
-            //
-            sendatatem[0] = 0x66.toByte()
-            sendatatem[1] = 0xcc.toByte()
-            sendatatem[2] = 0x00.toByte()
-            sendatatem[3] = (9 + senddatalen).toByte()
-            sendatatem[4] = 0x30.toByte()
-            sendatatem[5] = cankou.toByte()
-            sendatatem[6] = canDataType.toByte()
-            sendatatem[7] = ((canId and 0xff000000.toInt()) shr 24).toByte()
-            sendatatem[8] = ((canId and 0xff0000.toInt()) shr 16).toByte()
-            sendatatem[9] = ((canId and 0xff00.toInt()) shr 8).toByte()
-            sendatatem[10] = ((canId and 0xff.toInt())).toByte()
-            sendatatem[11] = (senddatalen).toByte()
+                //命令 上位机下发指令
+                sendDataArray[4] = 0x30.toByte()
 
-            if (senddatalen > 0) {
-                for (indexx in 12 until 12 + senddatalen) {
-                    sendatatem[indexx] = canData[indexx - 12]
+                //CAN口
+                sendDataArray[5] = canPort.toByte()
+
+                //CAN 帧类型标识 0x03
+                sendDataArray[6] = canDataType.toByte()
+
+                //CAN帧Id
+                sendDataArray[7] = ((canId and 0xff000000.toInt()) shr 24).toByte()
+                sendDataArray[8] = ((canId and 0xff0000) shr 16).toByte()
+                sendDataArray[9] = ((canId and 0xff00) shr 8).toByte()
+                sendDataArray[10] = ((canId and 0xff)).toByte()
+
+                //数据长度DLC 8
+                sendDataArray[11] = (sendDataLength).toByte()
+
+                //向下位机发送的CANOpen数据
+                // sendDataArray[12] = Utils.int2byte(command)
+                // sendDataArray[13] = Utils.int2byte(index and 0xff)
+                // sendDataArray[14] = Utils.int2byte((index and 0xff00) shr 8)
+                // sendDataArray[15] = Utils.int2byte(subIndex)
+                if (sendDataLength > 0) {
+                    for (index in 12 until 12 + sendDataLength) {
+                        sendDataArray[index] = canData[index - 12]
+                    }
                 }
+                //校验和 sendDataArray[20]
+                sendDataArray[12 + sendDataLength] =
+                    (checkCommandData(sendDataArray, 0)).toByte()
+
+                LogUtils.e(TAG, "SendDate2can: ${toHexStr(sendDataArray)}")
+                sendData2Serial(sendDataArray, userMainThread = userMainThread)
+                when (usbCanSendDateState) {
+                    0 -> {
+                        println("发送数据成功-- $usbCanSendDateState")
+                        printByteArray(
+                            "发送数据到can总线--canId = [${canId.toString(16)}]=",
+                            canData
+                        )
+                        fokState = true
+                    }
+
+                    5 -> {
+                        println("发送数据失败-- $usbCanSendDateState")
+                    }
+                    else -> {
+                        println("发送数据未知-- $usbCanSendDateState")
+                    }
+                }
+
+                fokState
             }
-
-            sendatatem[12 + senddatalen] = 0x00
-            sendatatem[12 + senddatalen] = (checkCommandData(sendatatem, 0)).toByte()
-
-//            Log.e(TAG, "SendDate2can: ${GsonUtils.toJson(sendatatem)}")
-
-            LogUtils.e(TAG, "SendDate2can 发送数据 serial ${toHexStr(sendatatem)}")
-            sendData2Serial(sendatatem, userMainThread = userMainThread)
-            when (usbcansenddatesate) {
-                0 -> {
-                    println("发送数据成功-- $usbcansenddatesate")
-                    fokstate = true
-                }
-
-                5 -> {
-                    println("发送数据失败-- $usbcansenddatesate")
-                }
-
-                else -> {
-                    println("发送数据未知-- $usbcansenddatesate")
-                }
+            else -> {
+                println("发送的数据长度不对 $sendDataLength")
+                fokState
             }
-        } else {
-            println("发送的数据长度不对 $senddatalen")
         }
-        return fokstate
     }
 
 
     fun dataPackageToQueue(data: ByteArray) {
 
-        val aLen = databuffall.size
+        val aLen = dataBuffAll.size
         val bLen = data.size
         val tembuf: ByteArray = ByteArray(aLen + bLen)
 
 
-        System.arraycopy(databuffall, 0, tembuf, 0, aLen)
+        System.arraycopy(dataBuffAll, 0, tembuf, 0, aLen)
         System.arraycopy(data, 0, tembuf, aLen, bLen)
 
 
@@ -259,7 +288,7 @@ open class UsbCanSerial {
                     var packageSize: Int = dataBuff[indexhead + 3].toInt()   //起始标志 = 2，起始标志+包长度 = 4
                     if (packageSize > MaxDataLen) {
                         println("丢弃数据")
-                        databuffall = ByteArray(0)
+                        dataBuffAll = ByteArray(0)
                     } else {
                         if (dataBuff.size >= (4 + packageSize))//#数据已全部收全   起始标志+包长度 = 4
                         {
@@ -295,24 +324,24 @@ open class UsbCanSerial {
 
                                 } else {
                                     println("有其他数据但是不对丢弃")
-                                    databuffall = ByteArray(0)
+                                    dataBuffAll = ByteArray(0)
                                 }
 
                             } else {
-                                databuffall = ByteArray(0)
+                                dataBuffAll = ByteArray(0)
 
                             }
 
 
                         } else {
                             println("数据没有接收完")
-                            databuffall = dataBuff
+                            dataBuffAll = dataBuff
                         }
 
 
                     }
                 } else {
-                    databuffall = ByteArray(0)
+                    dataBuffAll = ByteArray(0)
                     println(
                         "不是 0x 66 0x cc 0-1:  0:${byte2unit(dataBuff[indexhead])}  1:${
                             byte2unit(
@@ -328,11 +357,11 @@ open class UsbCanSerial {
 
 
                 println("数据中没有头数据 size=${dataBuff.size}")
-                databuffall = ByteArray(0)
+                dataBuffAll = ByteArray(0)
 
             }
         } else {
-            databuffall = ByteArray(0)
+            dataBuffAll = ByteArray(0)
             println("数据长度不对 size=${dataBuff.size}")
         }
     }
